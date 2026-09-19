@@ -1,0 +1,84 @@
+"""GridFlex application configuration.
+
+APP_MODE controls which storage backend is used:
+
+  local  — In-memory store; no AWS credentials required.
+           All service logic runs in-process in the single FastAPI/Uvicorn process.
+           DynamoDB is never contacted unless AWS_ENDPOINT_URL points to LocalStack.
+
+  aws    — DynamoDB is used as the primary store.
+           AWS credentials (env, IAM role, or profile) must be configured.
+           SNS alerts are published when SNS_ENABLED=true and SNS_TOPIC_ARN is set.
+
+Any environment variable set in .env (or the shell) overrides the defaults.
+The existing ``shared.config.Settings`` dataclass is intentionally kept intact
+for backward-compatibility with the per-service containers.
+"""
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, field
+
+
+def _float(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)))
+    except ValueError:
+        return default
+
+
+def _int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except ValueError:
+        return default
+
+
+@dataclass
+class AppConfig:
+    # ── Runtime mode ──────────────────────────────────────────────────────────
+    # "local"  → in-memory store, no AWS credentials required
+    # "aws"    → DynamoDB as primary store (existing production behaviour)
+    app_mode: str = field(default_factory=lambda: os.getenv("APP_MODE", "local").lower())
+
+    # ── AWS / DynamoDB ────────────────────────────────────────────────────────
+    aws_region: str = field(default_factory=lambda: os.getenv("AWS_REGION", "ap-south-1"))
+    aws_endpoint_url: str | None = field(default_factory=lambda: os.getenv("AWS_ENDPOINT_URL") or None)
+    table_prefix: str = field(default_factory=lambda: os.getenv("DYNAMODB_TABLE_PREFIX", "gridflex"))
+
+    # ── Grid parameters ───────────────────────────────────────────────────────
+    feeder_id: str = field(default_factory=lambda: os.getenv("FEEDER_ID", "F01"))
+    grid_import_limit_kw: float = field(default_factory=lambda: _float("GRID_IMPORT_LIMIT", 80.0))
+    battery_capacity_kwh: float = field(default_factory=lambda: _float("BATTERY_CAPACITY_KWH", 200.0))
+    battery_reserve_pct: float = field(default_factory=lambda: _float("BATTERY_RESERVE_PCT", 20.0))
+    battery_max_discharge_kw: float = field(default_factory=lambda: _float("BATTERY_MAX_DISCHARGE_KW", 75.0))
+    battery_max_charge_kw: float = field(default_factory=lambda: _float("BATTERY_MAX_CHARGE_KW", 50.0))
+    critical_load_kw: float = field(default_factory=lambda: _float("CRITICAL_LOAD_KW", 48.0))
+    peak_solar_kw: float = field(default_factory=lambda: _float("PEAK_SOLAR_KW", 150.0))
+
+    # ── Location (Mumbai) ─────────────────────────────────────────────────────
+    latitude: float = 19.0760
+    longitude: float = 72.8777
+
+    # ── Forecast / Optimisation horizons ──────────────────────────────────────
+    forecast_horizon_slots: int = 48
+    optimization_horizon_slots: int = 8
+    gap_threshold_kw: float = 0.5
+
+    # ── SNS alerts ────────────────────────────────────────────────────────────
+    sns_topic_arn: str = field(default_factory=lambda: os.getenv("SNS_TOPIC_ARN", ""))
+    sns_enabled: bool = field(
+        default_factory=lambda: os.getenv("SNS_ENABLED", "false").lower() == "true"
+    )
+
+    @property
+    def is_local(self) -> bool:
+        return self.app_mode == "local"
+
+    @property
+    def is_aws(self) -> bool:
+        return self.app_mode == "aws"
+
+
+# Singleton used throughout the unified app
+config = AppConfig()
