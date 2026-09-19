@@ -1,0 +1,47 @@
+{
+  "normal": {
+    "feeder_id": "F01",
+    "forecast_confidence_pct": 89.0,
+    "cloud_event_active": false,
+    "points": [
+      { "time": "00:00", "demand_kw": 95, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 90, "confidence_upper": 100 },
+      { "time": "02:00", "demand_kw": 85, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 80, "confidence_upper": 90 },
+      { "time": "04:00", "demand_kw": 80, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 75, "confidence_upper": 85 },
+      { "time": "06:00", "demand_kw": 110, "solar_kw": 15, "gap_kw": 0, "confidence_lower": 105, "confidence_upper": 115 },
+      { "time": "08:00", "demand_kw": 140, "solar_kw": 60, "gap_kw": 0, "confidence_lower": 133, "confidence_upper": 147 },
+      { "time": "10:00", "demand_kw": 155, "solar_kw": 105, "gap_kw": 0, "confidence_lower": 147, "confidence_upper": 163 },
+      { "time": "12:00", "demand_kw": 160, "solar_kw": 125, "gap_kw": 0, "confidence_lower": 152, "confidence_upper": 168 },
+      { "time": "14:00", "demand_kw": 162, "solar_kw": 118, "gap_kw": 0, "confidence_lower": 154, "confidence_upper": 170 },
+      { "time": "16:00", "demand_kw": 165, "solar_kw": 95, "gap_kw": 0, "confidence_lower": 157, "confidence_upper": 173 },
+      { "time": "18:00", "demand_kw": 172, "solar_kw": 40, "gap_kw": 0, "confidence_lower": 163, "confidence_upper": 181 },
+      { "time": "20:00", "demand_kw": 160, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 152, "confidence_upper": 168 },
+      { "time": "22:00", "demand_kw": 125, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 118, "confidence_upper": 132 }
+    ]
+  },
+  "cloud_event": {
+    "feeder_id": "F01",
+    "forecast_confidence_pct": 87.0,
+    "cloud_event_active": true,
+    "cloud_event_window": {
+      "start": "15:00",
+      "end": "17:30",
+      "degradation_pct": 79
+    },
+    "points": [
+      { "time": "00:00", "demand_kw": 95, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 90, "confidence_upper": 100 },
+      { "time": "02:00", "demand_kw": 85, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 80, "confidence_upper": 90 },
+      { "time": "04:00", "demand_kw": 80, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 75, "confidence_upper": 85 },
+      { "time": "06:00", "demand_kw": 110, "solar_kw": 15, "gap_kw": 0, "confidence_lower": 105, "confidence_upper": 115 },
+      { "time": "08:00", "demand_kw": 140, "solar_kw": 60, "gap_kw": 0, "confidence_lower": 133, "confidence_upper": 147 },
+      { "time": "10:00", "demand_kw": 155, "solar_kw": 105, "gap_kw": 0, "confidence_lower": 147, "confidence_upper": 163 },
+      { "time": "12:00", "demand_kw": 160, "solar_kw": 125, "gap_kw": 0, "confidence_lower": 152, "confidence_upper": 168 },
+      { "time": "14:00", "demand_kw": 162, "solar_kw": 118, "gap_kw": 0, "confidence_lower": 154, "confidence_upper": 170 },
+      { "time": "15:00", "demand_kw": 168, "solar_kw": 25, "gap_kw": 63, "confidence_lower": 160, "confidence_upper": 176, "is_cloud_event": true },
+      { "time": "16:00", "demand_kw": 170, "solar_kw": 22, "gap_kw": 68, "confidence_lower": 162, "confidence_upper": 178, "is_cloud_event": true },
+      { "time": "17:00", "demand_kw": 175, "solar_kw": 15, "gap_kw": 80, "confidence_lower": 166, "confidence_upper": 184, "is_cloud_event": true },
+      { "time": "18:00", "demand_kw": 172, "solar_kw": 10, "gap_kw": 82, "confidence_lower": 163, "confidence_upper": 181 },
+      { "time": "20:00", "demand_kw": 160, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 152, "confidence_upper": 168 },
+      { "time": "22:00", "demand_kw": 125, "solar_kw": 0, "gap_kw": 0, "confidence_lower": 118, "confidence_upper": 132 }
+    ]
+  }
+}

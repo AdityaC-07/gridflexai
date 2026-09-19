@@ -1,0 +1,16 @@
+{
+  "normal": [],
+  "cloud_event": [
+    {
+      "alert_id": "ALT-20260918-01",
+      "feeder_id": "F01",
+      "severity": "HIGH",
+      "category": "SOLAR_DEGRADATION",
+      "title": "Cloud Event Detected",
+      "message": "Solar generation forecast dropped 79% (118 kW → 25 kW). Energy gap: 80 kW.",
+      "timestamp": "2026-09-18T15:02:11.000Z",
+      "requires_action": true,
+      "recommendation_id": "D-F01-CLOUD-7902"
+    }
+  ]
+}

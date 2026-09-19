@@ -1,0 +1,30 @@
+{
+  "family": "gridflex-optimization",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::804012660016:role/gridflex-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::804012660016:role/gridflex-task-role",
+  "containerDefinitions": [
+    {
+      "name": "optimization",
+      "image": "804012660016.dkr.ecr.ap-south-1.amazonaws.com/gridflex-optimization:latest",
+      "portMappings": [{ "containerPort": 8000 }],
+      "environment": [
+        { "name": "AWS_REGION", "value": "ap-south-1" },
+        { "name": "FEEDER_ID", "value": "F01" },
+        { "name": "BATTERY_CAPACITY_KWH", "value": "200" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/gridflex-optimization",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
+

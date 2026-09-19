@@ -1,0 +1,34 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GridFlexDynamoData",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:ap-south-1:804012660016:table/gridflex-telemetry",
+        "arn:aws:dynamodb:ap-south-1:804012660016:table/gridflex-forecasts",
+        "arn:aws:dynamodb:ap-south-1:804012660016:table/gridflex-feeder-state",
+        "arn:aws:dynamodb:ap-south-1:804012660016:table/gridflex-decisions",
+        "arn:aws:dynamodb:ap-south-1:804012660016:table/gridflex-battery",
+        "arn:aws:dynamodb:ap-south-1:804012660016:table/gridflex-reliability-events"
+      ]
+    },
+    {
+      "Sid": "GridFlexLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:ap-south-1:804012660016:log-group:/ecs/gridflex-*:*"
+    }
+  ]
+}
+

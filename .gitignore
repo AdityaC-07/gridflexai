@@ -1,0 +1,49 @@
+# ================= GRIDFLEX AI — ROOT GITIGNORE =================
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pkl
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+ENV/
+
+# Node / Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files (NEVER commit live .env)
+.env
+.env.*
+!.env.example
+
+# AWS / credentials — NEVER commit key material
+key.json
+delete-key.json
+*-key.json
+*.pem
+*.key
+.aws/
+AWScredentials*
+
+# Docker / local caches
+.docker/
+.parcel-cache/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.sw?

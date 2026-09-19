@@ -1,0 +1,29 @@
+{
+  "family": "gridflex-forecast",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::804012660016:role/gridflex-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::804012660016:role/gridflex-task-role",
+  "containerDefinitions": [
+    {
+      "name": "forecast",
+      "image": "804012660016.dkr.ecr.ap-south-1.amazonaws.com/gridflex-forecast:latest",
+      "portMappings": [{ "containerPort": 8000 }],
+      "environment": [
+        { "name": "AWS_REGION", "value": "ap-south-1" },
+        { "name": "FEEDER_ID", "value": "F01" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/gridflex-forecast",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
+

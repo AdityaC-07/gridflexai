@@ -1,0 +1,7 @@
+[
+  { "timestamp": "14:00", "demand_kw": 162.0, "solar_kw": 118.0, "battery_soc": 76.0, "grid_import_kw": 44.0, "frequency_hz": 50.01 },
+  { "timestamp": "14:15", "demand_kw": 163.5, "solar_kw": 117.2, "battery_soc": 76.0, "grid_import_kw": 46.3, "frequency_hz": 49.98 },
+  { "timestamp": "14:30", "demand_kw": 161.0, "solar_kw": 118.5, "battery_soc": 76.0, "grid_import_kw": 42.5, "frequency_hz": 50.02 },
+  { "timestamp": "14:45", "demand_kw": 164.0, "solar_kw": 115.0, "battery_soc": 76.0, "grid_import_kw": 49.0, "frequency_hz": 49.99 },
+  { "timestamp": "15:00", "demand_kw": 168.0, "solar_kw": 25.0, "battery_soc": 76.0, "grid_import_kw": 80.0, "frequency_hz": 49.91 }
+]

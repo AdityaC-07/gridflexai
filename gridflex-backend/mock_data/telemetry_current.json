@@ -1,0 +1,10 @@
+{
+  "feeder_id": "F01",
+  "timestamp": "2026-09-18T07:31:26.032329+00:00",
+  "demand_kw": 136.05,
+  "solar_kw": 2.0,
+  "battery_soc_pct": 80.0,
+  "battery_soc_kwh": 160.0,
+  "temperature_c": 32.5,
+  "grid_import_kw": 80.0
+}

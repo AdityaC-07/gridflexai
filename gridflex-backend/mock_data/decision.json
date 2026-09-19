@@ -1,0 +1,112 @@
+{
+  "decision_id": "D-MOCK001",
+  "feeder_id": "F01",
+  "created_at": "2026-09-18T07:31:26.032329+00:00",
+  "optimization": {
+    "method": "HEURISTIC",
+    "battery_dispatch_kw": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "load_shift_kw": [
+      23.78,
+      39.46,
+      54.05,
+      65.22,
+      69.5,
+      66.22,
+      56.05,
+      42.46
+    ],
+    "unserved_kw": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_unserved_kwh": 0.0,
+    "expected_reliability_pct": 100.0,
+    "battery_energy_used_kwh": 0.0,
+    "critical_load_kw": 48.0,
+    "usable_battery_kwh": 120.0
+  },
+  "policy": {
+    "approved": false,
+    "requires_manual_approval": true,
+    "auto_execute": false,
+    "policy_checks": [
+      {
+        "rule": "R1_CRITICAL_LOAD_PROTECTION",
+        "passed": true,
+        "message": "Critical loads protected; no critical shedding."
+      },
+      {
+        "rule": "R2_BATTERY_RESERVE",
+        "passed": true,
+        "message": "Battery SOC after dispatch 60.0% >= reserve 20.0%."
+      },
+      {
+        "rule": "R3_FORECAST_CONFIDENCE",
+        "passed": true,
+        "message": "Forecast confidence 0.85 >= 0.60."
+      },
+      {
+        "rule": "R4_HIGH_UNSERVED_ENERGY",
+        "passed": true,
+        "message": "Unserved energy 0.0 kWh within limit."
+      }
+    ],
+    "all_checks_passed": true,
+    "hard_checks_passed": true,
+    "optimization_result": {
+      "method": "HEURISTIC",
+      "battery_dispatch_kw": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "load_shift_kw": [
+        23.78,
+        39.46,
+        54.05,
+        65.22,
+        69.5,
+        66.22,
+        56.05,
+        42.46
+      ],
+      "unserved_kw": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "total_unserved_kwh": 0.0,
+      "expected_reliability_pct": 100.0,
+      "battery_energy_used_kwh": 0.0,
+      "critical_load_kw": 48.0,
+      "usable_battery_kwh": 120.0
+    }
+  },
+  "explanation": "Feeder F01 is LOW (stress index 11.75/100) with a current net energy gap of 0.0 kW and a peak 4-hour gap of 69.5 kW. Demand is 136.05 kW against solar output of 2.0 kW, so reduced solar (e.g. the 17:00-19:30 cloud event) directly widens the gap beyond the grid import limit. Using HEURISTIC optimization, the plan dispatches up to 0.0 kW from the community battery (0.0 kWh total) and shifts up to 69.5 kW of flexible load (flexible pool 127.5 kW), leaving 0.0 kWh unserved with expected gap-coverage reliability of 100.0%. Critical loads (48 kW) are fully protected and never shed. Recommended action: MONITOR. The decision requires manual operator approval before execution (auto-execute is disabled).",
+  "status": "PENDING_APPROVAL"
+}

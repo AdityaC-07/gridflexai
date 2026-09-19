@@ -1,0 +1,59 @@
+{
+    "containerDefinitions":  [
+                                 {
+                                     "name":  "forecast",
+                                     "image":  "804012660016.dkr.ecr.ap-south-1.amazonaws.com/gridflex-forecast:latest",
+                                     "cpu":  0,
+                                     "portMappings":  [
+                                                          {
+                                                              "containerPort":  8000,
+                                                              "hostPort":  8000,
+                                                              "protocol":  "tcp"
+                                                          }
+                                                      ],
+                                     "essential":  true,
+                                     "environment":  [
+                                                         {
+                                                             "name":  "AWS_REGION",
+                                                             "value":  "ap-south-1"
+                                                         },
+                                                         {
+                                                             "name":  "FEEDER_ID",
+                                                             "value":  "F01"
+                                                         }
+                                                     ],
+                                     "mountPoints":  [
+
+                                                     ],
+                                     "volumesFrom":  [
+
+                                                     ],
+                                     "logConfiguration":  {
+                                                              "logDriver":  "awslogs",
+                                                              "options":  {
+                                                                              "awslogs-group":  "/ecs/gridflex-forecast",
+                                                                              "awslogs-region":  "ap-south-1",
+                                                                              "awslogs-stream-prefix":  "ecs"
+                                                                          }
+                                                          },
+                                     "systemControls":  [
+
+                                                        ]
+                                 }
+                             ],
+    "family":  "gridflex-forecast",
+    "taskRoleArn":  "arn:aws:iam::804012660016:role/gridflex-task-role",
+    "executionRoleArn":  "arn:aws:iam::804012660016:role/gridflex-ecs-execution-role",
+    "networkMode":  "awsvpc",
+    "volumes":  [
+
+                ],
+    "placementConstraints":  [
+
+                             ],
+    "requiresCompatibilities":  [
+                                    "FARGATE"
+                                ],
+    "cpu":  "256",
+    "memory":  "512"
+}

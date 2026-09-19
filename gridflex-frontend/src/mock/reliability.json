@@ -1,0 +1,32 @@
+{
+  "feeder_id": "F01",
+  "feeder_name": "Dharavi North",
+  "period": "24-Hour Operational Simulation",
+  "total_demand_kwh": 3888.0,
+  "baseline": {
+    "reliability_pct": 61.0,
+    "unserved_kwh": 187.5,
+    "critical_interruptions": 3,
+    "outage_duration_minutes": 145,
+    "affected_households": 340
+  },
+  "gridflex": {
+    "reliability_pct": 97.0,
+    "unserved_kwh": 8.0,
+    "critical_interruptions": 0,
+    "outage_duration_minutes": 0,
+    "affected_households": 0
+  },
+  "impact": {
+    "reliability_improvement_pct": 36.0,
+    "unserved_energy_avoided_kwh": 179.5,
+    "critical_interruptions_avoided": 3,
+    "carbon_offset_kg": 147.2
+  },
+  "feeders_summary": [
+    { "feeder_id": "F01", "name": "Dharavi North", "status": "OPERATIONAL", "reliability": 97.0, "risk": "LOW" },
+    { "feeder_id": "F02", "name": "Kurla West", "status": "OPERATIONAL", "reliability": 94.2, "risk": "LOW" },
+    { "feeder_id": "F03", "name": "Bandra East", "status": "OPERATIONAL", "reliability": 98.1, "risk": "LOW" },
+    { "feeder_id": "F04", "name": "Sion South", "status": "MONITORING", "reliability": 91.5, "risk": "MEDIUM" }
+  ]
+}

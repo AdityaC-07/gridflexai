@@ -1,0 +1,13 @@
+{
+  "feeder_id": "F01",
+  "alerts": [
+    {
+      "severity": "HIGH",
+      "message": "Energy gap on F01 during cloud event 17:00-19:30."
+    },
+    {
+      "severity": "MEDIUM",
+      "message": "Battery dispatch recommended."
+    }
+  ]
+}

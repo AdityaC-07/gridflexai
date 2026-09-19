@@ -1,0 +1,46 @@
+services:
+  forecast:
+    build:
+      context: .
+      dockerfile: forecast_service/Dockerfile
+    ports:
+      - "8001:8000"
+    env_file: .env
+    environment:
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      FEEDER_ID: ${FEEDER_ID:-F01}
+
+  grid-intel:
+    build:
+      context: .
+      dockerfile: grid_intelligence/Dockerfile
+    ports:
+      - "8002:8000"
+    env_file: .env
+    environment:
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      FEEDER_ID: ${FEEDER_ID:-F01}
+      GRID_IMPORT_LIMIT: ${GRID_IMPORT_LIMIT:-80}
+
+  optimization:
+    build:
+      context: .
+      dockerfile: optimization_service/Dockerfile
+    ports:
+      - "8003:8000"
+    env_file: .env
+    environment:
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      FEEDER_ID: ${FEEDER_ID:-F01}
+      BATTERY_CAPACITY_KWH: ${BATTERY_CAPACITY_KWH:-200}
+
+  data-api:
+    build:
+      context: .
+      dockerfile: data_api/Dockerfile
+    ports:
+      - "8004:8000"
+    env_file: .env
+    environment:
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      FEEDER_ID: ${FEEDER_ID:-F01}

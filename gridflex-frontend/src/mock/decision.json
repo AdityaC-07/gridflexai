@@ -1,0 +1,99 @@
+{
+  "normal": {
+    "decision_id": "D-F01-NORMAL-001",
+    "feeder_id": "F01",
+    "created_at": "2026-09-18T14:30:00.000Z",
+    "status": "APPROVED",
+    "recommended_action": "MONITOR",
+    "optimization": {
+      "method": "LP_OPTIMAL",
+      "battery_dispatch_kw": 0.0,
+      "battery_energy_used_kwh": 0.0,
+      "load_shift_kw": 0.0,
+      "total_unserved_kwh": 0.0,
+      "expected_reliability_pct": 98.5,
+      "critical_load_kw": 48.0,
+      "usable_battery_kwh": 112.0
+    },
+    "policy": {
+      "approved": true,
+      "requires_manual_approval": false,
+      "auto_execute": false,
+      "all_checks_passed": true,
+      "policy_checks": [
+        {
+          "rule": "R1_CRITICAL_LOAD_PROTECTION",
+          "passed": true,
+          "message": "Critical loads fully protected (48.0 kW baseline)."
+        },
+        {
+          "rule": "R2_BATTERY_RESERVE",
+          "passed": true,
+          "message": "Battery SOC maintained above 20.0% safety threshold."
+        },
+        {
+          "rule": "R3_FORECAST_CONFIDENCE",
+          "passed": true,
+          "message": "Forecast confidence 89.0% exceeds 60.0% gate."
+        },
+        {
+          "rule": "R4_HIGH_UNSERVED_ENERGY",
+          "passed": true,
+          "message": "Unserved energy 0.0 kWh within operational safety limits."
+        }
+      ]
+    },
+    "explanation": "Feeder F01 is operating within normal parameters with zero net energy gap. Solar generation is currently 118.0 kW against community demand of 162.0 kW, with remaining load met by standard grid import (44.0 kW <= 80.0 kW limit). System is balanced and requires no dispatch or load shifting intervention."
+  },
+  "cloud_event": {
+    "decision_id": "D-F01-CLOUD-7902",
+    "feeder_id": "F01",
+    "created_at": "2026-09-18T15:05:00.000Z",
+    "status": "PENDING_APPROVAL",
+    "recommended_action": "DISPATCH_BATTERY_AND_SHIFT_LOAD",
+    "optimization": {
+      "method": "SCIPY_LINPROG_LP",
+      "battery_dispatch_kw": 70.0,
+      "battery_dispatch_kwh": 175.0,
+      "battery_duration_hours": 2.5,
+      "load_shift_kw": 20.0,
+      "total_unserved_kwh": 0.0,
+      "expected_reliability_pct": 97.0,
+      "critical_load_kw": 48.0,
+      "usable_battery_kwh": 112.0,
+      "load_shifts": [
+        { "load_type": "water_heater", "shift_kw": 12.0, "duration": "2.0h" },
+        { "load_type": "ev_charging", "shift_kw": 8.0, "duration": "1.5h" }
+      ]
+    },
+    "policy": {
+      "approved": false,
+      "requires_manual_approval": true,
+      "auto_execute": false,
+      "all_checks_passed": true,
+      "policy_checks": [
+        {
+          "rule": "R1_CRITICAL_LOAD_PROTECTION",
+          "passed": true,
+          "message": "Critical loads fully protected (48.0 kW guaranteed continuous supply)."
+        },
+        {
+          "rule": "R2_BATTERY_RESERVE",
+          "passed": true,
+          "message": "Battery SOC after dispatch will remain at 24.5% (>= 20.0% reserve limit)."
+        },
+        {
+          "rule": "R3_FORECAST_CONFIDENCE",
+          "passed": true,
+          "message": "Forecast confidence 87.0% satisfies 60.0% threshold."
+        },
+        {
+          "rule": "R4_HIGH_UNSERVED_ENERGY",
+          "passed": true,
+          "message": "Zero unserved energy projected under proposed optimization plan."
+        }
+      ]
+    },
+    "explanation": "Severe cloud event detected over Dharavi North (Feeder F01). Solar generation dropped from 118.0 kW to 25.0 kW, creating an unmitigated 80.0 kW energy gap exceeding grid import capabilities. Linear Programming optimization (Scipy LP) recommends dispatching the community battery at 70.0 kW for 2.5 hours combined with 20.0 kW of flexible load shifting (water heaters and non-essential EV charging). Critical loads (48.0 kW) remain 100% protected. Expected feeder reliability is 97.0%. Operator approval is required before execution."
+  }
+}

@@ -1,0 +1,585 @@
+{
+  "feeder_id": "F01",
+  "created_at": "2026-09-18T07:31:26.032329+00:00",
+  "demand": [
+    {
+      "offset_minutes": 30,
+      "forecast_kw": 108.78,
+      "confidence_low_kw": 97.9,
+      "confidence_high_kw": 119.66
+    },
+    {
+      "offset_minutes": 60,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 90,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 120,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 150,
+      "forecast_kw": 150.0,
+      "confidence_low_kw": 135.0,
+      "confidence_high_kw": 165.0
+    },
+    {
+      "offset_minutes": 180,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 210,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 240,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 270,
+      "forecast_kw": 108.78,
+      "confidence_low_kw": 97.9,
+      "confidence_high_kw": 119.66
+    },
+    {
+      "offset_minutes": 300,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 330,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 360,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 390,
+      "forecast_kw": 150.0,
+      "confidence_low_kw": 135.0,
+      "confidence_high_kw": 165.0
+    },
+    {
+      "offset_minutes": 420,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 450,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 480,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 510,
+      "forecast_kw": 108.78,
+      "confidence_low_kw": 97.9,
+      "confidence_high_kw": 119.66
+    },
+    {
+      "offset_minutes": 540,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 570,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 600,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 630,
+      "forecast_kw": 150.0,
+      "confidence_low_kw": 135.0,
+      "confidence_high_kw": 165.0
+    },
+    {
+      "offset_minutes": 660,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 690,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 720,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 750,
+      "forecast_kw": 108.78,
+      "confidence_low_kw": 97.9,
+      "confidence_high_kw": 119.66
+    },
+    {
+      "offset_minutes": 780,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 810,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 840,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 870,
+      "forecast_kw": 150.0,
+      "confidence_low_kw": 135.0,
+      "confidence_high_kw": 165.0
+    },
+    {
+      "offset_minutes": 900,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 930,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 960,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 990,
+      "forecast_kw": 108.78,
+      "confidence_low_kw": 97.9,
+      "confidence_high_kw": 119.66
+    },
+    {
+      "offset_minutes": 1020,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 1050,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 1080,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 1110,
+      "forecast_kw": 150.0,
+      "confidence_low_kw": 135.0,
+      "confidence_high_kw": 165.0
+    },
+    {
+      "offset_minutes": 1140,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 1170,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 1200,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 1230,
+      "forecast_kw": 108.78,
+      "confidence_low_kw": 97.9,
+      "confidence_high_kw": 119.66
+    },
+    {
+      "offset_minutes": 1260,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    },
+    {
+      "offset_minutes": 1290,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 1320,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 1350,
+      "forecast_kw": 150.0,
+      "confidence_low_kw": 135.0,
+      "confidence_high_kw": 165.0
+    },
+    {
+      "offset_minutes": 1380,
+      "forecast_kw": 146.22,
+      "confidence_low_kw": 131.6,
+      "confidence_high_kw": 160.84
+    },
+    {
+      "offset_minutes": 1410,
+      "forecast_kw": 136.05,
+      "confidence_low_kw": 122.45,
+      "confidence_high_kw": 149.66
+    },
+    {
+      "offset_minutes": 1440,
+      "forecast_kw": 122.46,
+      "confidence_low_kw": 110.21,
+      "confidence_high_kw": 134.71
+    }
+  ],
+  "solar": [
+    {
+      "offset_minutes": 30,
+      "forecast_kw": 5.0,
+      "confidence_low_kw": 4.25,
+      "confidence_high_kw": 5.75
+    },
+    {
+      "offset_minutes": 60,
+      "forecast_kw": 3.0,
+      "confidence_low_kw": 2.55,
+      "confidence_high_kw": 3.45
+    },
+    {
+      "offset_minutes": 90,
+      "forecast_kw": 2.0,
+      "confidence_low_kw": 1.7,
+      "confidence_high_kw": 2.3
+    },
+    {
+      "offset_minutes": 120,
+      "forecast_kw": 1.0,
+      "confidence_low_kw": 0.85,
+      "confidence_high_kw": 1.15
+    },
+    {
+      "offset_minutes": 150,
+      "forecast_kw": 0.5,
+      "confidence_low_kw": 0.42,
+      "confidence_high_kw": 0.57
+    },
+    {
+      "offset_minutes": 180,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 210,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 240,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 270,
+      "forecast_kw": 5.0,
+      "confidence_low_kw": 4.25,
+      "confidence_high_kw": 5.75
+    },
+    {
+      "offset_minutes": 300,
+      "forecast_kw": 3.0,
+      "confidence_low_kw": 2.55,
+      "confidence_high_kw": 3.45
+    },
+    {
+      "offset_minutes": 330,
+      "forecast_kw": 2.0,
+      "confidence_low_kw": 1.7,
+      "confidence_high_kw": 2.3
+    },
+    {
+      "offset_minutes": 360,
+      "forecast_kw": 1.0,
+      "confidence_low_kw": 0.85,
+      "confidence_high_kw": 1.15
+    },
+    {
+      "offset_minutes": 390,
+      "forecast_kw": 0.5,
+      "confidence_low_kw": 0.42,
+      "confidence_high_kw": 0.57
+    },
+    {
+      "offset_minutes": 420,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 450,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 480,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 510,
+      "forecast_kw": 5.0,
+      "confidence_low_kw": 4.25,
+      "confidence_high_kw": 5.75
+    },
+    {
+      "offset_minutes": 540,
+      "forecast_kw": 3.0,
+      "confidence_low_kw": 2.55,
+      "confidence_high_kw": 3.45
+    },
+    {
+      "offset_minutes": 570,
+      "forecast_kw": 2.0,
+      "confidence_low_kw": 1.7,
+      "confidence_high_kw": 2.3
+    },
+    {
+      "offset_minutes": 600,
+      "forecast_kw": 1.0,
+      "confidence_low_kw": 0.85,
+      "confidence_high_kw": 1.15
+    },
+    {
+      "offset_minutes": 630,
+      "forecast_kw": 0.5,
+      "confidence_low_kw": 0.42,
+      "confidence_high_kw": 0.57
+    },
+    {
+      "offset_minutes": 660,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 690,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 720,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 750,
+      "forecast_kw": 5.0,
+      "confidence_low_kw": 4.25,
+      "confidence_high_kw": 5.75
+    },
+    {
+      "offset_minutes": 780,
+      "forecast_kw": 3.0,
+      "confidence_low_kw": 2.55,
+      "confidence_high_kw": 3.45
+    },
+    {
+      "offset_minutes": 810,
+      "forecast_kw": 2.0,
+      "confidence_low_kw": 1.7,
+      "confidence_high_kw": 2.3
+    },
+    {
+      "offset_minutes": 840,
+      "forecast_kw": 1.0,
+      "confidence_low_kw": 0.85,
+      "confidence_high_kw": 1.15
+    },
+    {
+      "offset_minutes": 870,
+      "forecast_kw": 0.5,
+      "confidence_low_kw": 0.42,
+      "confidence_high_kw": 0.57
+    },
+    {
+      "offset_minutes": 900,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 930,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 960,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 990,
+      "forecast_kw": 5.0,
+      "confidence_low_kw": 4.25,
+      "confidence_high_kw": 5.75
+    },
+    {
+      "offset_minutes": 1020,
+      "forecast_kw": 3.0,
+      "confidence_low_kw": 2.55,
+      "confidence_high_kw": 3.45
+    },
+    {
+      "offset_minutes": 1050,
+      "forecast_kw": 2.0,
+      "confidence_low_kw": 1.7,
+      "confidence_high_kw": 2.3
+    },
+    {
+      "offset_minutes": 1080,
+      "forecast_kw": 1.0,
+      "confidence_low_kw": 0.85,
+      "confidence_high_kw": 1.15
+    },
+    {
+      "offset_minutes": 1110,
+      "forecast_kw": 0.5,
+      "confidence_low_kw": 0.42,
+      "confidence_high_kw": 0.57
+    },
+    {
+      "offset_minutes": 1140,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 1170,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 1200,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 1230,
+      "forecast_kw": 5.0,
+      "confidence_low_kw": 4.25,
+      "confidence_high_kw": 5.75
+    },
+    {
+      "offset_minutes": 1260,
+      "forecast_kw": 3.0,
+      "confidence_low_kw": 2.55,
+      "confidence_high_kw": 3.45
+    },
+    {
+      "offset_minutes": 1290,
+      "forecast_kw": 2.0,
+      "confidence_low_kw": 1.7,
+      "confidence_high_kw": 2.3
+    },
+    {
+      "offset_minutes": 1320,
+      "forecast_kw": 1.0,
+      "confidence_low_kw": 0.85,
+      "confidence_high_kw": 1.15
+    },
+    {
+      "offset_minutes": 1350,
+      "forecast_kw": 0.5,
+      "confidence_low_kw": 0.42,
+      "confidence_high_kw": 0.57
+    },
+    {
+      "offset_minutes": 1380,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 1410,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    },
+    {
+      "offset_minutes": 1440,
+      "forecast_kw": 0.0,
+      "confidence_low_kw": 0.0,
+      "confidence_high_kw": 0.0
+    }
+  ],
+  "confidence": 0.85
+}

@@ -1,0 +1,21 @@
+{
+  "feeder_id": "F01",
+  "baseline_unserved_energy_kwh": 208.37,
+  "gridflex_unserved_energy_kwh": 0.0,
+  "unserved_energy_avoided_kwh": 208.37,
+  "reliability_gain_pct": 100.0,
+  "saidi_baseline_h_per_customer": 4.1674,
+  "saidi_gridflex_h_per_customer": 0.0,
+  "saifi_baseline_per_customer": 0.16,
+  "saifi_gridflex_per_customer": 0.0,
+  "supply_availability_baseline_pct": null,
+  "supply_availability_gridflex_pct": null,
+  "critical_load_interruptions_baseline": 8,
+  "critical_load_interruptions_gridflex": 0,
+  "critical_load_uptime_gridflex_pct": 100.0,
+  "renewable_utilization_pct": 0.0,
+  "peak_grid_import_reduction_kw": 0.0,
+  "battery_utilization_efficiency_pct": 0.0,
+  "battery_energy_used_kwh": 0.0,
+  "slots_evaluated": 8
+}

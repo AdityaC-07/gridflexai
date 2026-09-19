@@ -1,0 +1,41 @@
+{
+  "feeder_id": "F01",
+  "risk_level": "LOW",
+  "stress_index": 11.75,
+  "net_gap_kw": 0.0,
+  "gross_gap_kw": 54.05,
+  "peak_gap_next_4h_kw": 69.5,
+  "demand_kw": 136.05,
+  "solar_kw": 2.0,
+  "total_flexible_kw": 127.5,
+  "recommended_action": "MONITOR",
+  "timestamp": "2026-09-18T07:31:26.032329+00:00",
+  "battery_soc_pct": 80.0,
+  "battery_soc_kwh": 160.0,
+  "grid_import_limit_kw": 80,
+  "battery_coverage_kw": 54.05,
+  "has_gap": false,
+  "peak_demand_kw": 150.0,
+  "load_breakdown": [
+    {
+      "load_type": "water_heater",
+      "available_kw": 60.0,
+      "enrolled_households": 30,
+      "max_shift_hours": 3.0
+    },
+    {
+      "load_type": "non_essential_ac",
+      "available_kw": 37.5,
+      "enrolled_households": 25,
+      "max_shift_hours": 2.0
+    },
+    {
+      "load_type": "ev_charging",
+      "available_kw": 30.0,
+      "enrolled_households": 10,
+      "max_shift_hours": 4.0
+    }
+  ],
+  "forecast_confidence": 0.85,
+  "status": "OK"
+}
