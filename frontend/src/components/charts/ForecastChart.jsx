@@ -12,6 +12,7 @@ import {
   CartesianGrid
 } from 'recharts';
 import { useGridState } from '../../context/GridStateContext';
+import { Zap } from 'lucide-react';
 
 function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
@@ -83,7 +84,9 @@ export function ForecastChart() {
             color: '#B45309',
             zIndex: 10
           }}>
-            ⚡ Cloud Window Highlighted (15:00 - 17:30)
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Zap size={13} color="#B45309" /> Cloud Window Highlighted (15:00 - 17:30)
+            </span>
           </div>
         )}
 

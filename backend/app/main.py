@@ -34,6 +34,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from contextlib import asynccontextmanager
 
 # ── Ensure backend/ is on the Python path ────────────────────────────────────
 # This allows the existing per-service packages (forecast_service, etc.)
@@ -78,6 +79,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger("app.main")
 
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    """FastAPI lifespan handler — replaces deprecated @app.on_event("startup")."""
+    logger.info("=" * 60)
+    logger.info("GridFlex Unified Backend starting")
+    logger.info("  APP_MODE  = %s", config.app_mode)
+    logger.info("  FEEDER_ID = %s", config.feeder_id)
+    logger.info("  AWS_REGION= %s", config.aws_region)
+    if config.is_local:
+        logger.info("  Store     = in-memory (no AWS credentials required)")
+    else:
+        logger.info("  Store     = DynamoDB (%s)", config.aws_region)
+    logger.info("=" * 60)
+
+    # Warm the demand forecaster model
+    try:
+        from app.services.forecast import forecast_service
+        forecast_service.startup()
+        logger.info("Forecast model ready: %s", forecast_service.model_ready)
+    except Exception as exc:
+        logger.warning("Forecast model warm-up failed (%s); fallback active.", exc)
+
+    logger.info("All services initialised. API ready at /docs")
+    yield  # Application runs here
+    # Shutdown (nothing to clean up in local mode)
+    logger.info("GridFlex Unified Backend shutting down.")
+
+
 # ── FastAPI application ───────────────────────────────────────────────────────
 app = FastAPI(
     title="GridFlex Unified Backend",
@@ -88,6 +118,7 @@ app = FastAPI(
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -160,31 +191,6 @@ def health() -> dict:
         "feeder_id": config.feeder_id,
         "services": service_status,
     }
-
-
-# ── Startup event ─────────────────────────────────────────────────────────────
-@app.on_event("startup")
-async def on_startup() -> None:
-    logger.info("=" * 60)
-    logger.info("GridFlex Unified Backend starting")
-    logger.info("  APP_MODE  = %s", config.app_mode)
-    logger.info("  FEEDER_ID = %s", config.feeder_id)
-    logger.info("  AWS_REGION= %s", config.aws_region)
-    if config.is_local:
-        logger.info("  Store     = in-memory (no AWS credentials required)")
-    else:
-        logger.info("  Store     = DynamoDB (%s)", config.aws_region)
-    logger.info("=" * 60)
-
-    # Warm the demand forecaster model
-    try:
-        from app.services.forecast import forecast_service
-        forecast_service.startup()
-        logger.info("Forecast model ready: %s", forecast_service.model_ready)
-    except Exception as exc:
-        logger.warning("Forecast model warm-up failed (%s); fallback active.", exc)
-
-    logger.info("All services initialised. API ready at /docs")
 
 
 # ── Allow running directly with `python -m app.main` ─────────────────────────

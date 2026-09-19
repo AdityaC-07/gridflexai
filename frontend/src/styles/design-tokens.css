@@ -1,0 +1,284 @@
+/* Warm Mineral Design Tokens & Global CSS System */
+:root {
+  /* Default Dark Mode Surface & Colors */
+  --color-bg-charcoal: #0F0F0F;
+  --color-bg-surface: #1A1A1A;
+  --color-bg-surface-hover: #242424;
+  --color-bg-surface-dark: #121212;
+  --color-bg-card: #161616;
+
+  /* Copper Primary Palette */
+  --color-copper-500: #D4841A;
+  --color-copper-400: #E89B3C;
+  --color-copper-600: #C77414;
+  --color-copper-glow: rgba(212, 132, 26, 0.25);
+  --color-copper-glow-strong: rgba(212, 132, 26, 0.4);
+
+  /* GridFlex AI Teal Palette */
+  --color-teal-300: #7DD3FC;
+  --color-teal-400: #38BDF8;
+  --color-teal-500: #0284C7;
+  --color-teal-600: #0369A1;
+  --color-teal-700: #0D7377;
+
+  /* Alert & Status Colors */
+  --color-coral-300: #FF8073;
+  --color-coral-400: #FF6B5B;
+  --color-coral-500: #E5584A;
+  
+  --color-amber-300: #FCD34D;
+  --color-amber-400: #E8A035;
+  --color-amber-500: #D97706;
+
+  --color-sage-300: #7CB899;
+  --color-sage-400: #6BA587;
+  --color-sage-500: #5A9370;
+
+  /* Neutrals & Text */
+  --color-text-cream: #F5F1E8;
+  --color-text-secondary: #D1CCC3;
+  --color-text-mauve: #9D8189;
+  --color-text-dim: #64748B;
+  --color-text-dark: #0F0F0F;
+
+  /* Borders */
+  --color-border-subtle: #242424;
+  --color-border-medium: #3A3A3A;
+  --color-border-light: #4A4A4A;
+  --color-border-copper: #D4841A;
+
+  /* Designer Typography: Blend of Royalty (Cinzel), Funky Elite Display (Syne), & Premium UI (Outfit) */
+  --font-display: 'Syne', system-ui, -apple-system, sans-serif;
+  --font-regal: 'Cinzel', Georgia, serif;
+  --font-header: 'Syne', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+[data-theme="light"] {
+  --color-bg-charcoal: #F4F7EF;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-hover: #EAEFE3;
+  --color-bg-surface-dark: #FAFCF7;
+  --color-bg-card: #FFFFFF;
+  --color-text-cream: #0F172A;
+  --color-text-secondary: #3A4A3E;
+  --color-text-dim: #5C6B61;
+  --color-border-subtle: #E2E8DC;
+  --color-border-medium: #DAE2D2;
+}
+
+/* Global Reset & Base Typography */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--color-bg-charcoal);
+  color: var(--color-text-cream);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0F0F0F;
+}
+::-webkit-scrollbar-thumb {
+  background: #242424;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3A3A3A;
+}
+
+/* Reusable Utility Classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-regal {
+  font-family: var(--font-regal);
+  letter-spacing: 0.08em;
+}
+
+.font-header {
+  font-family: var(--font-header);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--color-copper-500);
+  color: #0F0F0F;
+  font-family: var(--font-header);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(212, 132, 26, 0.2);
+}
+.btn-primary:hover {
+  background-color: var(--color-copper-400);
+  box-shadow: 0 4px 16px rgba(212, 132, 26, 0.35);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  background-color: var(--color-copper-600);
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: #242424;
+  color: var(--color-text-cream);
+  font-family: var(--font-header);
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #3A3A3A;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 200ms ease;
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  background-color: #2A2A2A;
+  border-color: #4A4A4A;
+  color: #FFFFFF;
+}
+
+.btn-outline-copper {
+  background-color: transparent;
+  color: var(--color-copper-400);
+  border: 1px solid var(--color-copper-500);
+  font-family: var(--font-header);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 200ms ease;
+}
+.btn-outline-copper:hover {
+  background-color: rgba(212, 132, 26, 0.1);
+  border-color: var(--color-copper-400);
+  color: #FFFFFF;
+}
+
+/* Badge Utilities */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge-live {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.badge-good {
+  background: rgba(107, 165, 135, 0.15);
+  color: #7CB899;
+  border: 1px solid rgba(107, 165, 135, 0.3);
+}
+
+.badge-optimal {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-caution {
+  background: rgba(232, 160, 53, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(232, 160, 53, 0.3);
+}
+
+.badge-alert {
+  background: rgba(255, 107, 91, 0.15);
+  color: #FF6B5B;
+  border: 1px solid rgba(255, 107, 91, 0.4);
+}
+
+.badge-copper {
+  background: rgba(212, 132, 26, 0.15);
+  color: #E89B3C;
+  border: 1px solid rgba(212, 132, 26, 0.4);
+}
+
+/* Glow effects */
+.glow-copper {
+  box-shadow: 0 0 20px rgba(212, 132, 26, 0.25);
+}
+
+.glow-coral {
+  box-shadow: 0 0 20px rgba(255, 107, 91, 0.25);
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(212, 132, 26, 0.4);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 24px rgba(212, 132, 26, 0.7);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
