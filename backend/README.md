@@ -26,7 +26,57 @@ Copy-Item .env.example .env
 .venv\Scripts\python.exe -m pytest tests -q
 ```
 
-Run services (ports 8001–8004):
+## LOCAL DEVELOPMENT — ONE PROCESS
+
+Start the unified backend with ONE command from the backend/ directory:
+
+```powershell
+# Using the venv in gridflex-backend/
+../gridflex-backend/.venv/Scripts/python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+This runs all services (forecast, grid intelligence, optimization, data/api, copilot, verification) in a single FastAPI process with in-memory storage. No AWS credentials required.
+
+Health check: `GET http://localhost:8000/health`
+
+### Local Architecture
+
+```
+React Frontend
+       ↓
+Unified FastAPI Application (port 8000)
+       ↓
+ ┌───────────────┬────────────────┬────────────────┐
+ │ Forecast      │ Grid Intel     │ Optimization   │
+ │ service       │ service        │ service        │
+ └───────────────┴────────────────┴────────────────┘
+       ↓
+Shared Python modules
+       ↓
+In-memory store (local mode) / DynamoDB (AWS mode)
+```
+
+### Environment Variables
+
+For local development, set in `.env`:
+
+```
+APP_MODE=local
+AWS_REGION=ap-south-1
+FEEDER_ID=F01
+```
+
+For AWS mode:
+
+```
+APP_MODE=aws
+AWS_REGION=ap-south-1
+# plus AWS credentials
+```
+
+## LEGACY MULTI-PROCESS MODE (for reference)
+
+The old multi-terminal setup still works for testing individual services:
 
 ```powershell
 .venv\Scripts\python.exe -m uvicorn forecast_service.main:app --port 8001
@@ -99,17 +149,17 @@ ECR/ECS/API-Gateway/CloudWatch commands are listed in the implementation report.
 
 ```powershell
 # 1. ingest evening-peak telemetry with cloud event
-curl -X POST localhost:8004/api/v1/telemetry/F01/ingest -H "Content-Type: application/json" -d "@mock_data/telemetry_current.json"
+curl -X POST localhost:8000/api/v1/telemetry/F01/ingest -H "Content-Type: application/json" -d "{\"demand_kw\":85.0,\"solar_kw\":45.0,\"battery_soc_pct\":80.0,\"battery_soc_kwh\":160.0,\"temperature_c\":30.0,\"timestamp\":\"2026-09-19T18:00:00Z\"}"
 # 2. refresh forecast (with cloud event)
-curl -X POST localhost:8004/api/v1/forecast/F01/refresh -H "Content-Type: application/json" -d "{\"cloud_event\":{\"active\":true,\"severity\":0.8,\"start_slot\":0,\"duration_slots\":5}}"
+curl -X POST localhost:8000/api/v1/forecast/F01/refresh -H "Content-Type: application/json" -d "{\"cloud_event\":{\"active\":true,\"severity\":0.8,\"start_slot\":0,\"duration_slots\":5}}"
 # 3. feeder state / gap / stress / risk
-curl localhost:8004/api/v1/feeder/F01/state
+curl localhost:8000/api/v1/feeder/F01/state
 # 4. run optimization (LP, heuristic fallback) + policy + explanation
-curl -X POST localhost:8004/api/v1/optimization/F01/run
+curl -X POST localhost:8000/api/v1/optimization/F01/run
 # 5. approve as operator (MVP always requires manual approval; auto_execute=false)
-curl -X POST localhost:8004/api/v1/optimization/<decision_id>/approve -H "Content-Type: application/json" -d "{\"feeder_id\":\"F01\"}"
+curl -X POST localhost:8000/api/v1/optimization/<decision_id>/approve -H "Content-Type: application/json" -d "{\"feeder_id\":\"F01\"}"
 # 6. baseline vs GridFlex reliability
-curl localhost:8004/api/v1/reliability/F01/metrics
+curl localhost:8000/api/v1/reliability/F01/metrics
 ```
 
 ## Troubleshooting

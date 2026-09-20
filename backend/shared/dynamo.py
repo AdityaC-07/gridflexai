@@ -268,7 +268,13 @@ def get_latest_decision(feeder_id: str) -> dict[str, Any] | None:
 # ---------------- reliability events ----------------
 
 def write_reliability_event(item: dict[str, Any]) -> dict[str, Any]:
+    """Write reliability event using feeder_id + timestamp as primary key."""
     try:
+        # Ensure required keys are present
+        if "feeder_id" not in item:
+            raise ValueError("feeder_id is required for reliability events")
+        if "timestamp" not in item:
+            raise ValueError("timestamp is required for reliability events")
         _table("reliability-events").put_item(Item=_to_dynamo(item))
         return item
     except Exception as exc:
@@ -276,26 +282,35 @@ def write_reliability_event(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_reliability_event(event_id: str) -> dict[str, Any] | None:
+    """Get a reliability event by event_id. Since event_id is not the primary key,
+    this requires a scan with a filter. In production, consider adding a GSI on event_id."""
     try:
-        resp = _table("reliability-events").get_item(Key={"event_id": event_id})
-        item = resp.get("Item")
-        return _from_dynamo(item) if item else None
+        resp = _table("reliability-events").scan(
+            FilterExpression="event_id = :e",
+            ExpressionAttributeValues={":e": event_id},
+            Limit=1
+        )
+        items = resp.get("Items", [])
+        return _from_dynamo(items[0]) if items else None
     except Exception as exc:
         raise _friendly_error("get_reliability_event", exc)
 
 
 def get_active_reliability_events(feeder_id: str | None = None) -> list[dict[str, Any]]:
+    """Get active reliability events using Query by feeder_id when possible."""
     try:
         if feeder_id:
-            resp = _table("reliability-events").scan(
-                FilterExpression="feeder_id = :f AND #s IN :statuses",
-                ExpressionAttributeNames={"#s": "status"},
-                ExpressionAttributeValues={
-                    ":f": feeder_id,
-                    ":statuses": ["PREDICTED", "ACTIVE", "OPERATOR_APPROVED", "DISPATCHED", "VERIFYING"]
-                }
+            # Use Query with feeder_id partition key, then filter by status
+            resp = _table("reliability-events").query(
+                KeyConditionExpression="feeder_id = :f",
+                ExpressionAttributeValues={":f": feeder_id},
+                ScanIndexForward=False  # Get most recent first
             )
+            # Filter by status in application code
+            active_statuses = ["PREDICTED", "ACTIVE", "OPERATOR_APPROVED", "DISPATCHED", "VERIFYING"]
+            items = [i for i in resp.get("Items", []) if i.get("status") in active_statuses]
         else:
+            # No feeder_id, must scan
             resp = _table("reliability-events").scan(
                 FilterExpression="#s IN :statuses",
                 ExpressionAttributeNames={"#s": "status"},
@@ -303,24 +318,31 @@ def get_active_reliability_events(feeder_id: str | None = None) -> list[dict[str
                     ":statuses": ["PREDICTED", "ACTIVE", "OPERATOR_APPROVED", "DISPATCHED", "VERIFYING"]
                 }
             )
-        return [_from_dynamo(i) for i in resp.get("Items", [])]
+            items = resp.get("Items", [])
+        return [_from_dynamo(i) for i in items]
     except Exception as exc:
         raise _friendly_error("get_active_reliability_events", exc)
 
 
 def get_recent_reliability_events(feeder_id: str | None = None, limit: int = 10) -> list[dict[str, Any]]:
+    """Get recent reliability events using Query by feeder_id when possible."""
     try:
         if feeder_id:
-            resp = _table("reliability-events").scan(
-                FilterExpression="feeder_id = :f",
+            # Use Query with feeder_id partition key
+            resp = _table("reliability-events").query(
+                KeyConditionExpression="feeder_id = :f",
                 ExpressionAttributeValues={":f": feeder_id},
-                Limit=limit * 2
+                ScanIndexForward=False,  # Get most recent first
+                Limit=limit
             )
+            items = resp.get("Items", [])
         else:
+            # No feeder_id, must scan
             resp = _table("reliability-events").scan(Limit=limit * 2)
-        items = [_from_dynamo(i) for i in resp.get("Items", [])]
-        items.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
-        return items[:limit]
+            items = [_from_dynamo(i) for i in resp.get("Items", [])]
+            items.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
+            items = items[:limit]
+        return [_from_dynamo(i) for i in items]
     except Exception as exc:
         raise _friendly_error("get_recent_reliability_events", exc)
 

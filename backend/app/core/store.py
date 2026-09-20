@@ -214,11 +214,16 @@ def write_reliability_event(item: dict[str, Any]) -> dict[str, Any]:
         except Exception:
             pass
     with _lock:
-        _reliability_events[item["event_id"]] = item
+        # Use composite key: feeder_id + timestamp
+        fid = item.get("feeder_id", "F01")
+        ts = item.get("timestamp", _now())
+        key = f"{fid}#{ts}"
+        _reliability_events[key] = item
     return item
 
 
 def get_reliability_event(event_id: str) -> dict[str, Any] | None:
+    """Get event by event_id - requires scan since event_id is not primary key."""
     if config.is_aws:
         from shared import dynamo as db
         try:
@@ -228,7 +233,11 @@ def get_reliability_event(event_id: str) -> dict[str, Any] | None:
         except Exception:
             pass
     with _lock:
-        return _reliability_events.get(event_id)
+        # Scan through events to find by event_id
+        for event in _reliability_events.values():
+            if event.get("event_id") == event_id:
+                return event
+        return None
 
 
 def get_active_reliability_events(feeder_id: str | None = None) -> list[dict[str, Any]]:
@@ -243,6 +252,8 @@ def get_active_reliability_events(feeder_id: str | None = None) -> list[dict[str
     events = [e for e in events if e.get("status") in _ACTIVE_STATUSES]
     if feeder_id:
         events = [e for e in events if e.get("feeder_id") == feeder_id]
+    # Sort by timestamp (most recent first)
+    events.sort(key=lambda e: str(e.get("timestamp", "")), reverse=True)
     return events
 
 
@@ -257,7 +268,8 @@ def get_recent_reliability_events(feeder_id: str | None = None, limit: int = 10)
         events = list(_reliability_events.values())
     if feeder_id:
         events = [e for e in events if e.get("feeder_id") == feeder_id]
-    events.sort(key=lambda e: str(e.get("created_at", "")), reverse=True)
+    # Sort by timestamp (most recent first)
+    events.sort(key=lambda e: str(e.get("timestamp", "")), reverse=True)
     return events[:limit]
 
 

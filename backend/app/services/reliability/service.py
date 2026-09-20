@@ -62,6 +62,9 @@ class ReliabilityService:
         event["status"] = "OPERATOR_APPROVED"
         event["approved_at"] = datetime.now(timezone.utc).isoformat()
         event["approved_by"] = approved_by
+        # Ensure timestamp is preserved (required for DynamoDB sort key)
+        if "timestamp" not in event:
+            event["timestamp"] = event.get("created_at", datetime.now(timezone.utc).isoformat())
         updated = write_reliability_event(event)
         logger.info("Approved reliability event %s by %s", event_id, approved_by)
         return updated

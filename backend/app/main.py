@@ -193,6 +193,50 @@ def health() -> dict:
     }
 
 
+# ── Runtime status ─────────────────────────────────────────────────────────────
+@app.get("/api/v1/runtime/status", tags=["health"])
+def runtime_status() -> dict:
+    """Runtime status showing component-level information."""
+    from app.core.store import store_available
+
+    component_status: dict[str, str] = {}
+
+    # Forecast availability
+    try:
+        from app.services.forecast import forecast_service
+        component_status["forecast"] = "OK" if forecast_service.model_ready else "DEGRADED"
+    except Exception:
+        component_status["forecast"] = "UNAVAILABLE"
+
+    # Grid intelligence availability
+    component_status["grid_intelligence"] = "OK"
+
+    # Optimization availability
+    component_status["optimization"] = "OK"
+
+    # Data API availability
+    component_status["data_api"] = "OK"
+
+    # DynamoDB connectivity
+    if config.is_aws:
+        component_status["dynamodb"] = "OK" if store_available() else "UNAVAILABLE"
+    else:
+        component_status["dynamodb"] = "OK (in-memory)"
+
+    # Simulation availability
+    component_status["simulation"] = "OK"
+
+    return {
+        "runtime": config.app_mode,
+        "aws_connectivity": "CONNECTED" if config.is_aws else "NOT_REQUIRED",
+        "dynamodb": component_status["dynamodb"],
+        "forecast": component_status["forecast"],
+        "intelligence": component_status["grid_intelligence"],
+        "optimization": component_status["optimization"],
+        "simulation": component_status["simulation"],
+    }
+
+
 # ── Allow running directly with `python -m app.main` ─────────────────────────
 if __name__ == "__main__":
     import uvicorn

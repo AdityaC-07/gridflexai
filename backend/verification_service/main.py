@@ -93,6 +93,9 @@ def verify_event_outcome(event_id: str) -> dict:
         event["status"] = "VERIFIED"
         event["verified_at"] = outcome["verified_at"]
         event["outcome"] = outcome
+        # Ensure timestamp is preserved (required for DynamoDB sort key)
+        if "timestamp" not in event:
+            event["timestamp"] = event.get("created_at", datetime.now(timezone.utc).isoformat())
 
         db.write_reliability_event(event)
         logger.info("Event %s verified successfully", event_id)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from grid_intelligence.pool_assembly import assemble_flexibility_pool, select_resources_for_dispatch
@@ -174,6 +175,9 @@ def update_event_with_dispatch_plan(event_id: str, dispatch_result: dict[str, An
         event["dispatch_plan"] = dispatch_result.get("dispatch_plan")
         event["battery_reserve_after_pct"] = dispatch_result.get("battery_reserve_after_pct")
         event["expected_unserved_energy_kwh"] = dispatch_result.get("expected_unserved_energy_kwh")
+        # Ensure timestamp is preserved (required for DynamoDB sort key)
+        if "timestamp" not in event:
+            event["timestamp"] = event.get("created_at", datetime.now(timezone.utc).isoformat())
 
         updated = db.write_reliability_event(event)
         logger.info("Updated event %s with dispatch plan", event_id)

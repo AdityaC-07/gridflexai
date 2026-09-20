@@ -81,18 +81,21 @@ pip install -r requirements.txt
 cp .env.example .env        # fill in only if you use DynamoDB/AWS
 ```
 
-Start the Data/API service (default port **8080**):
+Start the unified backend (ONE process, default port **8000**):
 
 ```bash
-uvicorn data_api.main:app --host 0.0.0.0 --port 8080
+cd backend
+# Using the venv from gridflex-backend/
+../gridflex-backend/.venv/Scripts/python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Health check: `GET http://localhost:8080/health` → `{"status":"ok",...}`.
+Health check: `GET http://localhost:8000/health` → `{"status":"ok",...}`.
 
 Run the tests:
 
 ```bash
-pytest
+cd backend
+../gridflex-backend/.venv/Scripts/python.exe -m pytest tests -q
 ```
 
 Or run everything containerized:
@@ -142,7 +145,7 @@ Edit `.env`:
 
 ```bash
 # Local backend:
-VITE_API_URL=http://localhost:8080
+VITE_API_URL=http://localhost:8000
 VITE_USE_MOCK=false
 ```
 

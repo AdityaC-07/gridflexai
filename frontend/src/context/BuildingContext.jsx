@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getFeederState, getFeederTelemetryCurrent } from '../api/feeder';
+import { getForecast } from '../api/forecast';
 
 const BuildingContext = createContext();
 
@@ -6,6 +8,35 @@ export function BuildingProvider({ children }) {
   const [theme, setTheme] = useState('dark');
   const [activeCityFilter, setActiveCityFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [liveGridFlex, setLiveGridFlex] = useState(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadLiveGridFlex() {
+      const [state, telemetry, forecast] = await Promise.all([
+        getFeederState('F01'),
+        getFeederTelemetryCurrent('F01'),
+        getForecast('F01'),
+      ]);
+
+      if (!isCurrent || (state.isMock && telemetry.isMock && forecast.isMock)) return;
+
+      setLiveGridFlex({
+        state: state.isMock ? null : state.data,
+        telemetry: telemetry.isMock ? null : telemetry.data,
+        forecast: forecast.isMock ? null : forecast.data,
+      });
+    }
+
+    loadLiveGridFlex().catch(() => {
+      // The existing static building data remains the fallback.
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -299,12 +330,27 @@ export function BuildingProvider({ children }) {
     setSelectedAnomaly(null);
   };
 
+  const liveBuilding = liveGridFlex
+    ? {
+        ...buildings[0],
+        status: liveGridFlex.state?.status || 'TELEMETRY LIVE',
+        statusType: 'live',
+        todaysUsage: liveGridFlex.telemetry?.demand_kw ?? liveGridFlex.state?.demand_kw ?? buildings[0].todaysUsage,
+        usageUnit: liveGridFlex.telemetry?.demand_kw != null || liveGridFlex.state?.demand_kw != null ? 'kW' : 'kWh',
+        usageSubtext: liveGridFlex.telemetry?.timestamp ? 'Live feeder F01 reading' : buildings[0].usageSubtext,
+        forecastConfidence: liveGridFlex.forecast?.forecast_confidence_pct,
+        gridThreshold: liveGridFlex.state?.stress_index ?? buildings[0].gridThreshold,
+        gridMetricLabel: liveGridFlex.state?.stress_index != null ? 'Grid stress' : 'Grid demand threshold',
+      }
+    : buildings[0];
+  const displayBuildings = liveGridFlex ? [liveBuilding, ...buildings.slice(1)] : buildings;
+
   return (
     <BuildingContext.Provider
       value={{
         theme,
         toggleTheme,
-        buildings,
+        buildings: displayBuildings,
         activeBuilding,
         activeCityFilter,
         setActiveCityFilter,

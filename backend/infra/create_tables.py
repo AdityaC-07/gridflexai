@@ -19,7 +19,7 @@ TABLES = [
     ("feeder-state", "feeder_id", "timestamp"),
     ("decisions", "feeder_id", "decision_id"),
     ("battery", "feeder_id", None),
-    ("reliability-events", "event_id", None),
+    ("reliability-events", "feeder_id", "timestamp"),  # Matches existing AWS schema
     ("flexibility-pool", "resource_id", None),
 ]
 

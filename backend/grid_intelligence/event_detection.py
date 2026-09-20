@@ -67,8 +67,9 @@ def detect_reliability_event(feeder_id: str, feeder_state: dict[str, Any], forec
 
     forecast_confidence = feeder_state.get("forecast_confidence", 0.75)
 
-    # Generate event ID
+    # Generate event ID and timestamp
     timestamp = datetime.now(timezone.utc)
+    timestamp_iso = timestamp.isoformat()
     event_id = f"GF-{feeder_id.upper()}-{timestamp.strftime('%Y%m%d-%H%M')}"
 
     # Calculate time to event (use first gap slot from forecast)
@@ -81,6 +82,7 @@ def detect_reliability_event(feeder_id: str, feeder_state: dict[str, Any], forec
     event = {
         "event_id": event_id,
         "feeder_id": feeder_id,
+        "timestamp": timestamp_iso,  # DynamoDB sort key
         "status": "PREDICTED",
         "predicted_gap_kw": round(predicted_gap, 2),
         "duration_minutes": duration_minutes,
@@ -90,7 +92,7 @@ def detect_reliability_event(feeder_id: str, feeder_state: dict[str, Any], forec
         "dispatch_plan": None,  # Will be populated by optimization service
         "battery_reserve_after_pct": None,  # Will be populated by optimization service
         "forecast_confidence": round(forecast_confidence, 2),
-        "created_at": timestamp.isoformat(),
+        "created_at": timestamp_iso,
         "approved_at": None,
         "verified_at": None,
         "outcome": None,

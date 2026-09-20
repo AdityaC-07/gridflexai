@@ -533,7 +533,7 @@ export function DashboardPage() {
                 <div>
                   <div style={{ fontFamily: 'Cinzel', fontSize: '0.62rem', fontWeight: 700, color: isLight ? '#5C6B61' : '#64748B' }}>TODAY'S USAGE</div>
                   <div style={{ fontFamily: 'JetBrains Mono', fontSize: '1.15rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8' }}>
-                    {b.todaysUsage} <span style={{ fontSize: '0.7rem' }}>kWh</span>
+                    {b.todaysUsage} <span style={{ fontSize: '0.7rem' }}>{b.usageUnit || 'kWh'}</span>
                   </div>
                   <div style={{ fontFamily: 'Outfit', fontSize: '0.7rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>{b.usageSubtext}</div>
                 </div>
@@ -558,7 +558,7 @@ export function DashboardPage() {
                 </div>
 
                 <div>
-                  <div style={{ fontFamily: 'Cinzel', fontSize: '0.62rem', fontWeight: 700, color: isLight ? '#5C6B61' : '#64748B' }}>EFFICIENCY</div>
+                  <div style={{ fontFamily: 'Cinzel', fontSize: '0.62rem', fontWeight: 700, color: isLight ? '#5C6B61' : '#64748B' }}>{b.forecastConfidence != null ? 'FORECAST CONFIDENCE' : 'EFFICIENCY'}</div>
                   <div
                     style={{
                       fontFamily: 'JetBrains Mono',
@@ -567,10 +567,10 @@ export function DashboardPage() {
                       color: '#059669',
                     }}
                   >
-                    {b.efficiency === 'OPTIMAL' ? '94.2%' : b.efficiency === 'GOOD' ? '91.2%' : '85.4%'}
+                    {b.forecastConfidence != null ? `${b.forecastConfidence}%` : (b.efficiency === 'OPTIMAL' ? '94.2%' : b.efficiency === 'GOOD' ? '91.2%' : '85.4%')}
                   </div>
                   <div style={{ fontFamily: 'Outfit', fontSize: '0.7rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>
-                    {b.efficiencySubtext}
+                    {b.forecastConfidence != null ? 'Live forecast model' : b.efficiencySubtext}
                   </div>
                 </div>
               </div>
@@ -579,7 +579,7 @@ export function DashboardPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <span style={{ fontFamily: 'Cinzel', fontSize: '0.62rem', fontWeight: 700, color: isLight ? '#5C6B61' : '#64748B' }}>
-                    Grid Demand Threshold
+                    {b.gridMetricLabel || 'Grid Demand Threshold'}
                   </span>
                   <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.68rem', color: isLight ? '#0F172A' : '#CBD5E1', fontWeight: 600 }}>
                     {b.gridThreshold}% / 100%
