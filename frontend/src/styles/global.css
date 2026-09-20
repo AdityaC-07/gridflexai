@@ -91,13 +91,13 @@ body {
   color: var(--color-status-critical);
 }
 
-/* Card & Panel Foundations (Restrained Industrial Design) */
+/* Card & Panel Foundations — theme-aware via CSS variables */
 .ops-panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .ops-panel:hover {
@@ -113,6 +113,7 @@ body {
   background: var(--bg-surface-elevated);
   border-top-left-radius: var(--radius-md);
   border-top-right-radius: var(--radius-md);
+  transition: background var(--transition-fast);
 }
 
 .ops-panel-title {
@@ -128,6 +129,7 @@ body {
 
 .ops-panel-body {
   padding: 16px;
+  color: var(--text-primary);
 }
 
 /* Buttons */
@@ -172,11 +174,13 @@ body {
   background: var(--bg-surface);
   color: var(--text-primary);
   border-color: var(--border-medium);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .ops-btn-outline:hover:not(:disabled) {
   background: var(--bg-surface-subtle);
   border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .ops-btn:disabled {
@@ -226,8 +230,8 @@ body {
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-app);

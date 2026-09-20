@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useBuildingContext } from '../../context/BuildingContext';
 import { X, Octagon, Cpu } from 'lucide-react';
 
 export function AnalysisLoadingModal() {
   const { isAnalyzing, closeModals, theme } = useBuildingContext();
   const isLight = theme === 'light';
+
+  // Generate unique-per-session values so they're not always the same
+  const sessionMeta = useMemo(() => {
+    const hex = Math.random().toString(16).slice(2, 10).toUpperCase();
+    const latency = Math.floor(Math.random() * 40 + 8);
+    const nodes = ['MUM-NODE-1', 'MUM-NODE-3', 'BOM-EDGE-2', 'WRL-NODE-5'];
+    const peer = nodes[Math.floor(Math.random() * nodes.length)];
+    return { session: `0X${hex}`, latency: `${latency}MS`, peer };
+  }, [isAnalyzing]); // re-generate each time modal opens
 
   if (!isAnalyzing) return null;
 
@@ -220,9 +229,9 @@ export function AnalysisLoadingModal() {
             color: '#64748B',
           }}
         >
-          <span>SESSION: 0X9AF48E</span>
-          <span>LATENCY: 18MS</span>
-          <span>PEER: DEL-NODE-7</span>
+          <span>SESSION: {sessionMeta.session}</span>
+          <span>LATENCY: {sessionMeta.latency}</span>
+          <span>PEER: {sessionMeta.peer}</span>
         </div>
       </div>
     </div>

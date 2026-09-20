@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuildingContext } from '../context/BuildingContext';
+import { useGridState } from '../context/GridStateContext';
 import {
   Search,
   Plus,
@@ -9,13 +10,14 @@ import {
   AlertTriangle,
   Repeat,
   Shield,
-  Sliders,
+  SlidersHorizontal,
   BarChart2,
   ArrowDownRight,
   ArrowUpRight,
   ArrowRight,
   Leaf,
   Sparkles,
+  X,
 } from 'lucide-react';
 
 export function DashboardPage() {
@@ -29,23 +31,62 @@ export function DashboardPage() {
     setSearchQuery,
     triggerAIAnalysis,
   } = useBuildingContext();
+  const { feederState, isCloudEvent } = useGridState();
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const isLight = theme === 'light';
 
+  // Live fleet metrics from F01 feeder state (F01 is the primary instrumented feeder)
+  const fleetDemandKw = buildings.reduce((sum, b) => {
+    const v = parseFloat(b.todaysUsage);
+    return sum + (isNaN(v) ? 0 : v);
+  }, 0);
+  const fleetDemandMW = (fleetDemandKw / 1000).toFixed(2);
+
+  // Count feeders with anomalies (caution/alert status)
+  const activeDiagnostics = buildings.filter(b =>
+    b.statusType === 'caution' || b.statusType === 'alert'
+  ).length;
+
+  // Battery SOC from live feeder state
+  const batterySoc = feederState?.battery_soc_pct ?? null;
+
+  // City tab counts computed from actual buildings
   const cityTabs = [
-    { label: 'All', count: 12 },
-    { label: 'Delhi NCR', count: 4 },
-    { label: 'Mumbai', count: 3 },
-    { label: 'Bengaluru', count: 3 },
-    { label: 'Hyderabad', count: 2 },
+    { label: 'All', count: buildings.length },
+    { label: 'Central Mumbai', count: buildings.filter(b => b.location.match(/Dharavi|Sion/i)).length },
+    { label: 'Eastern Suburbs', count: buildings.filter(b => b.location.match(/Kurla|MIDC|Andheri/i)).length },
+    { label: 'Western Suburbs', count: buildings.filter(b => b.location.match(/Andheri East/i)).length },
+    { label: 'South Mumbai', count: buildings.filter(b => b.location.match(/Worli|BKC/i)).length },
   ];
 
+  // Map location substrings to filter tab labels
+  const locationToFilter = {
+    'Central Mumbai': ['Dharavi', 'Sion'],
+    'Eastern Suburbs': ['Kurla', 'MIDC', 'Andheri'],
+    'Western Suburbs': ['Andheri East'],
+    'South Mumbai': ['Worli', 'BKC'],
+  };
+
   const filteredBuildings = buildings.filter((b) => {
-    const matchesCity = activeCityFilter === 'All' || b.city === activeCityFilter;
+    if (activeCityFilter === 'All') return true;
+    const keywords = locationToFilter[activeCityFilter] || [];
+    const matchesCity = keywords.some((k) =>
+      b.location.toLowerCase().includes(k.toLowerCase()) ||
+      b.city.toLowerCase().includes(k.toLowerCase())
+    );
     const matchesQuery =
+      !searchQuery ||
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCity && matchesQuery;
+  }).filter((b) => {
+    if (activeCityFilter !== 'All') return true;
+    return (
+      !searchQuery ||
+      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.location.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
 
   return (
@@ -119,7 +160,7 @@ export function DashboardPage() {
             Your Buildings
           </h1>
           <p style={{ fontFamily: 'Outfit', fontSize: '0.95rem', color: isLight ? '#3A4A3E' : '#94A3B8' }}>
-            Continuous telemetry and load orchestration across 12 facilities in 4 metropolitan sectors
+            Live MSEDCL feeder telemetry and demand response across {buildings.length} Mumbai distribution zones
           </p>
         </div>
 
@@ -158,7 +199,7 @@ export function DashboardPage() {
                 FLEET TELEMETRY FEED
               </div>
               <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.95rem', fontWeight: 700, color: isLight ? '#0D472B' : '#34D399' }}>
-                99.98% High-Fidelity
+                {feederState ? `${feederState.risk_level} · Live` : 'Connecting…'}
               </div>
             </div>
           </div>
@@ -205,11 +246,11 @@ export function DashboardPage() {
             </div>
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2.2rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8', lineHeight: 1 }}>
-            7.82 <span style={{ fontSize: '1.1rem', fontWeight: 600, color: isLight ? '#5C6B61' : '#94A3B8' }}>MW</span>
+            {fleetDemandMW} <span style={{ fontSize: '1.1rem', fontWeight: 600, color: isLight ? '#5C6B61' : '#94A3B8' }}>MW</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'Outfit', fontSize: '0.8rem', color: '#059669', marginTop: '6px', fontWeight: 600 }}>
             <ArrowDownRight size={14} color="#059669" />
-            <span>-14.2% Shaved Today</span>
+            <span>{buildings.length} feeders aggregated</span>
           </div>
         </div>
 
@@ -243,12 +284,12 @@ export function DashboardPage() {
               <AlertTriangle size={17} />
             </div>
           </div>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2.2rem', fontWeight: 700, color: '#E5584A', lineHeight: 1 }}>
-            02 <span style={{ fontSize: '1.1rem', fontWeight: 600, color: isLight ? '#0F172A' : '#F5F1E8' }}>Facilities</span>
+          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2.2rem', fontWeight: 700, color: activeDiagnostics > 0 ? '#E5584A' : '#059669', lineHeight: 1 }}>
+            {String(activeDiagnostics).padStart(2, '0')} <span style={{ fontSize: '1.1rem', fontWeight: 600, color: isLight ? '#0F172A' : '#F5F1E8' }}>Feeders</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'Outfit', fontSize: '0.8rem', color: '#E5584A', marginTop: '6px', fontWeight: 600 }}>
-            <AlertTriangle size={13} color="#E5584A" />
-            <span>Thermal excursion alert</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'Outfit', fontSize: '0.8rem', color: activeDiagnostics > 0 ? '#E5584A' : '#059669', marginTop: '6px', fontWeight: 600 }}>
+            {activeDiagnostics > 0 ? <AlertTriangle size={13} color="#E5584A" /> : null}
+            <span>{activeDiagnostics > 0 ? `${activeDiagnostics} caution / alert` : 'All feeders nominal'}</span>
           </div>
         </div>
 
@@ -286,7 +327,7 @@ export function DashboardPage() {
             Autonomous
           </div>
           <div style={{ fontFamily: 'Outfit', fontSize: '0.8rem', color: isLight ? '#5C6B61' : '#94A3B8', marginTop: '6px' }}>
-            GridFlex AI Sync 100%
+            {isCloudEvent ? 'Cloud Event Active' : 'GridFlex AI Sync 100%'}
           </div>
         </div>
 
@@ -321,10 +362,10 @@ export function DashboardPage() {
             </div>
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2.2rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8', lineHeight: 1 }}>
-            92 <span style={{ fontSize: '1rem', color: isLight ? '#5C6B61' : '#64748B' }}>/100</span>
+            {feederState?.forecast_confidence ? Math.round(feederState.forecast_confidence * 100) : '—'} <span style={{ fontSize: '1rem', color: isLight ? '#5C6B61' : '#64748B' }}>%</span>
           </div>
           <div style={{ fontFamily: 'Outfit', fontSize: '0.8rem', color: isLight ? '#0D472B' : '#7CB899', marginTop: '6px', fontWeight: 600 }}>
-            LEED Arc Certified Class
+            {feederState ? 'Forecast Confidence' : 'No live data yet'}
           </div>
         </div>
       </div>
@@ -365,49 +406,55 @@ export function DashboardPage() {
           />
         </div>
 
-        {/* View toggles & Create Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Toolbar buttons — all functional */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+
+          {/* Filter by city — toggles the city tab UI below */}
           <button
+            onClick={() => setFilterOpen(v => !v)}
+            title="Filter feeders by zone"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
+              display: 'flex', alignItems: 'center', gap: '6px',
               padding: '8px 14px',
-              backgroundColor: isLight ? '#FFFFFF' : '#161616',
+              backgroundColor: filterOpen ? (isLight ? '#0D472B' : '#D4841A') : (isLight ? '#FFFFFF' : '#161616'),
               border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A',
               borderRadius: '4px',
-              color: isLight ? '#2D3E33' : '#D1CCC3',
-              fontFamily: 'Outfit',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
+              color: filterOpen ? '#FFFFFF' : (isLight ? '#2D3E33' : '#D1CCC3'),
+              fontFamily: 'Outfit', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
             }}
           >
-            <Sliders size={14} />
-            <span>Filter Grid</span>
+            <SlidersHorizontal size={14} />
+            <span>{activeCityFilter === 'All' ? 'Filter Zone' : activeCityFilter}</span>
+            {activeCityFilter !== 'All' && (
+              <span onClick={(e) => { e.stopPropagation(); setActiveCityFilter('All'); }}
+                style={{ marginLeft: '4px', opacity: 0.7 }}>
+                <X size={12} />
+              </span>
+            )}
           </button>
 
+          {/* Analytics — navigates to analytics tab */}
           <button
+            onClick={() => navigate('/analytics')}
+            title="Open Grid Operations & Analytics"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
+              display: 'flex', alignItems: 'center', gap: '6px',
               padding: '8px 14px',
               backgroundColor: isLight ? '#FFFFFF' : '#161616',
               border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A',
               borderRadius: '4px',
               color: isLight ? '#2D3E33' : '#D1CCC3',
-              fontFamily: 'Outfit',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
+              fontFamily: 'Outfit', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
             }}
           >
             <BarChart2 size={14} />
-            <span>Metrics (3)</span>
+            <span>Analytics ({buildings.length})</span>
           </button>
 
+          {/* Add Feeder — navigates to operator console */}
           <button
+            onClick={() => navigate('/operator')}
+            title="Open Grid Operator Console"
             className="btn-primary"
             style={{
               padding: '9px 18px',
@@ -416,8 +463,8 @@ export function DashboardPage() {
               boxShadow: isLight ? '0 2px 8px rgba(13, 71, 43, 0.25)' : 'none',
             }}
           >
-            <Plus size={16} />
-            <span>Create Building</span>
+            <Zap size={16} />
+            <span>Grid Operator</span>
           </button>
         </div>
       </div>

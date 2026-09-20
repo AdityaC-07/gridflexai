@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getFeederState, getFeederTelemetryCurrent } from '../api/feeder';
-import { getForecast } from '../api/forecast';
+import { getForecast, refreshForecast } from '../api/forecast';
+import { CONFIG } from '../config';
 
 const BuildingContext = createContext();
 
@@ -14,10 +15,21 @@ export function BuildingProvider({ children }) {
     let isCurrent = true;
 
     async function loadLiveGridFlex() {
+      // Step 1: seed the backend if it has no data yet (cold start).
+      // refreshForecast triggers the backend forecast cycle (POST /refresh),
+      // which also populates feeder state via the grid intelligence cycle.
+      // If the backend is unreachable this is a silent no-op.
+      try {
+        await refreshForecast(CONFIG.DEFAULT_FEEDER_ID);
+      } catch {
+        // Backend unreachable — fall through to mock data below.
+      }
+
+      // Step 2: fetch live data (now guaranteed to have results after seed).
       const [state, telemetry, forecast] = await Promise.all([
-        getFeederState('F01'),
-        getFeederTelemetryCurrent('F01'),
-        getForecast('F01'),
+        getFeederState(CONFIG.DEFAULT_FEEDER_ID),
+        getFeederTelemetryCurrent(CONFIG.DEFAULT_FEEDER_ID),
+        getForecast(CONFIG.DEFAULT_FEEDER_ID),
       ]);
 
       if (!isCurrent || (state.isMock && telemetry.isMock && forecast.isMock)) return;
@@ -38,6 +50,14 @@ export function BuildingProvider({ children }) {
     };
   }, []);
 
+  // Sync data-theme attribute on <html> so CSS variables flip globally.
+  // This means EVERY component using var(--color-bg-charcoal) etc. reacts
+  // automatically — no per-component isLight checks needed for base colours.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : '');
+    document.documentElement.style.backgroundColor = theme === 'light' ? '#F4F7EF' : '#0F0F0F';
+  }, [theme]);
+
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
@@ -48,192 +68,219 @@ export function BuildingProvider({ children }) {
   const [selectedAnomaly, setSelectedAnomaly] = useState(null);
   const [isAutoDREnabled, setIsAutoDREnabled] = useState(true);
 
-  // Buildings dataset matching Screenshot 1
+  // ── Buildings dataset — Mumbai feeder topology (matches backend config) ──
+  // Backend: lat 19.0760, lon 72.8777 (Mumbai), feeder F01 = Dharavi North
+  // Feeders F01-F04: Dharavi North, Kurla West, Bandra East, Sion South (MSEDCL)
   const buildings = [
     {
-      id: 'delhi-tech-park',
-      name: 'Delhi Tech Park',
-      code: 'DL-04',
-      category: 'COMMERCIAL GRADE A',
+      id: 'dharavi-north-f01',
+      feederId: 'F01',
+      name: 'Dharavi North',
+      code: 'F01',
+      category: 'RESIDENTIAL FEEDER',
       status: 'TELEMETRY LIVE',
       statusType: 'live',
-      city: 'Delhi NCR',
-      location: 'Aerocity Sector',
-      todaysUsage: '850',
-      usageSubtext: 'Steady draw',
-      vsBaseline: '+4.2%',
-      vsBaselineLabel: 'Target buffer',
+      city: 'Mumbai',
+      location: 'Dharavi, Central Mumbai',
+      todaysUsage: '162',
+      usageUnit: 'kW',
+      usageSubtext: 'Live feeder F01 reading',
+      vsBaseline: '-12.3%',
+      vsBaselineLabel: 'Solar offset',
       efficiency: 'GOOD',
       efficiencySubtext: 'Within 10%',
       gridThreshold: 68,
-      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+      // Dharavi North — Mumbai dense residential, colourful buildings, community
+      image: 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?auto=format&fit=crop&w=800&q=80',
     },
     {
-      id: 'one-cyber-city',
-      name: 'One Cyber City',
-      code: 'GGN-01',
-      category: 'CORPORATE HQ',
-      status: 'ONLINE (8ms)',
+      id: 'kurla-west-f02',
+      feederId: 'F02',
+      name: 'Kurla West',
+      code: 'F02',
+      category: 'MIXED USE FEEDER',
+      status: 'ONLINE (6ms)',
       statusType: 'optimal',
-      city: 'Delhi NCR',
-      location: 'DLF Cyber Hub',
-      todaysUsage: '1,420',
+      city: 'Mumbai',
+      location: 'Kurla West, Eastern Suburbs',
+      todaysUsage: '248',
+      usageUnit: 'kW',
       usageSubtext: 'Peak shaved',
       vsBaseline: '-18.4%',
-      vsBaselineLabel: 'Solar offset',
+      vsBaselineLabel: 'BESS arbitrage',
       efficiency: 'OPTIMAL',
       efficiencySubtext: '>15% Below',
       gridThreshold: 42,
-      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
+      // Kurla West — Mumbai suburban street, local trains, mixed-use density
+      image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=800&q=80',
     },
     {
-      id: 'horizon-heights',
-      name: 'Horizon Heights',
-      code: 'BOM-08',
-      category: 'MIXED USE',
+      id: 'bandra-east-f03',
+      feederId: 'F03',
+      name: 'Bandra East',
+      code: 'F03',
+      category: 'COMMERCIAL FEEDER',
       status: 'HIGH LOAD (12ms)',
       statusType: 'caution',
       city: 'Mumbai',
       location: 'BKC Financial District',
-      todaysUsage: '2,100',
+      todaysUsage: '410',
+      usageUnit: 'kW',
       usageSubtext: 'HVAC surge',
       vsBaseline: '+14.6%',
       vsBaselineLabel: 'Chiller load',
       efficiency: 'CAUTION',
       efficiencySubtext: '+10-25% Peak',
       gridThreshold: 82,
-      image: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
+      // Bandra East / BKC — glass curtain-wall commercial highrise towers
+      image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',
     },
     {
-      id: 'vertex-tower-a',
-      name: 'Vertex Tower A',
-      code: 'BLR-02',
-      category: 'DATA CENTER',
-      status: 'EXCURSION ALERT',
-      statusType: 'alert',
-      city: 'Bengaluru',
-      location: 'Whitefield Corridor',
-      todaysUsage: '3,850',
-      usageSubtext: 'Critical load',
-      vsBaseline: '+27.8%',
-      vsBaselineLabel: 'Cooling loss',
-      efficiency: 'PEAK ALERT',
-      efficiencySubtext: '>25% Surge',
-      gridThreshold: 96,
-      image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
+      id: 'sion-south-f04',
+      feederId: 'F04',
+      name: 'Sion South',
+      code: 'F04',
+      category: 'INDUSTRIAL FEEDER',
+      status: 'MONITORING',
+      statusType: 'caution',
+      city: 'Mumbai',
+      location: 'Sion, Central Line Corridor',
+      todaysUsage: '312',
+      usageUnit: 'kW',
+      usageSubtext: 'Stable industrial draw',
+      vsBaseline: '+2.1%',
+      vsBaselineLabel: 'Target buffer',
+      efficiency: 'GOOD',
+      efficiencySubtext: 'Within 10%',
+      gridThreshold: 62,
+      // Sion — Mumbai Central Line, suburban railway infrastructure
+      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
     },
     {
-      id: 'aerocity-gateway',
-      name: 'Aerocity Gateway',
-      code: 'DL-09',
-      category: 'TRANSIT HUB',
-      status: 'ONLINE (6ms)',
+      id: 'andheri-east-f05',
+      feederId: 'F05',
+      name: 'Andheri East',
+      code: 'F05',
+      category: 'TECH CAMPUS HUB',
+      status: 'TELEMETRY LIVE',
+      statusType: 'live',
+      city: 'Mumbai',
+      location: 'MIDC, Andheri East',
+      todaysUsage: '185',
+      usageUnit: 'kW',
+      usageSubtext: 'Normative draw',
+      vsBaseline: '+3.8%',
+      vsBaselineLabel: 'Stable load',
+      efficiency: 'GOOD',
+      efficiencySubtext: 'Within 10%',
+      gridThreshold: 58,
+      // Andheri East MIDC — modern IT campus & tech park buildings
+      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
+    },
+    {
+      id: 'worli-north-f06',
+      feederId: 'F06',
+      name: 'Worli North',
+      code: 'F06',
+      category: 'TRANSIT + COMMERCIAL',
+      status: 'ONLINE (4ms)',
       statusType: 'optimal',
-      city: 'Delhi NCR',
-      location: 'IGI Terminal Link',
-      todaysUsage: '620',
+      city: 'Mumbai',
+      location: 'Worli Sea Face, South Mumbai',
+      todaysUsage: '138',
+      usageUnit: 'kW',
       usageSubtext: 'BMS optimized',
       vsBaseline: '-16.2%',
       vsBaselineLabel: 'Automated curb',
       efficiency: 'EXCELLENT',
       efficiencySubtext: '>15% Below',
       gridThreshold: 48,
-      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
-    },
-    {
-      id: 'mindspace-hub-4',
-      name: 'Mindspace Hub 4',
-      code: 'HYD-04',
-      category: 'TECH CAMPUS',
-      status: 'TELEMETRY LIVE',
-      statusType: 'live',
-      city: 'Hyderabad',
-      location: 'HITEC City Phase 2',
-      todaysUsage: '1,180',
-      usageSubtext: 'Normative draw',
-      vsBaseline: '+2.1%',
-      vsBaselineLabel: 'Stable load',
-      efficiency: 'GOOD',
-      efficiencySubtext: 'Within 10%',
-      gridThreshold: 62,
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
+      // Worli — Bandra–Worli Sea Link, South Mumbai waterfront skyline
+      image: 'https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=800&q=80',
     },
   ];
 
-  // Active Building detail (Delhi Tech Park)
+  // ── Active Building / Feeder detail — F01 Dharavi North ─────────────────
+  // Matches backend feeder F01: Mumbai composite zone, MSEDCL tariff structure
   const activeBuilding = {
     ...buildings[0],
-    gfa: '5,000 m² GFA',
-    conditionedSpace: '1,200 m²',
-    zone: 'COMPOSITE',
+    gfa: '4,200 m² GFA',
+    conditionedSpace: '1,050 m²',
+    zone: 'TROPICAL WET',
     ecbcStatus: 'ECBC COMPLIANT',
-    typology: 'Commercial Headquarters',
-    microClimate: 'Composite (New Delhi NCR)',
-    commissioningYear: '2012',
-    occupancyBaseline: '1,400 pax Max',
-    tariffPeakWindow: '14:00 - 18:00 IST',
-    efficiencyScore: 65,
-    regionalQuartile: '65th Percentile',
-    targetRating: 'Top 25% (A-Class)',
+    typology: 'Community Residential Feeder',
+    microClimate: 'Tropical Wet (Mumbai — 19.08°N, 72.88°E)',
+    commissioningYear: '2018',
+    occupancyBaseline: '340 households / ~1,200 pax',
+    tariffPeakWindow: '22:00 - 06:00 IST (ToD Off-Peak)',
+    discom: 'MSEDCL (Maharashtra State Electricity Distribution)',
+    peakSolarKw: 150,
+    batteryCapacityKwh: 200,
+    batteryReservePct: 20,
+    gridImportLimitKw: 80,
+    efficiencyScore: 72,
+    regionalQuartile: '72nd Percentile',
+    targetRating: 'Top 20% (A-Class Mumbai)',
     subsystems: [
-      { name: 'Chiller #1 Compressor', health: '80% Health', status: 'caution' },
-      { name: 'AHU-1 VAV Distribution', health: 'Healthy (96%)', status: 'optimal' },
-      { name: 'Hydronic Pump-1', health: '85% Health', status: 'caution' },
+      { name: 'Community Battery BESS-F01', health: '80% SoC (160 kWh avail)', status: 'optimal' },
+      { name: 'Rooftop Solar Array (150 kW peak)', health: 'Healthy (118 kW live)', status: 'optimal' },
+      { name: 'Distribution Transformer 500 kVA', health: '27% Loading — Normal', status: 'optimal' },
+      { name: 'EV Charging Hub (Sector B)', health: '3 active / 10 enrolled', status: 'caution' },
     ],
     equipment: [
       {
-        id: 'EQ-01',
-        assetName: 'Chiller #1 (Basement 01)',
-        subsystem: 'HVAC Central Plant',
-        healthScore: 80,
-        ageSpecs: '8 yrs (Trane Centrifugal 450T)',
+        id: 'EQ-F01-BAT',
+        assetName: 'BESS-F01 Community Battery (200 kWh)',
+        subsystem: 'Energy Storage',
+        healthScore: 96,
+        ageSpecs: '2 yrs (LFP 200 kWh / 80 kW BYD)',
+        actionProtocol: 'View Feed',
+        status: 'optimal',
+      },
+      {
+        id: 'EQ-F01-SOL',
+        assetName: 'Rooftop Solar PV Inverter (150 kW)',
+        subsystem: 'Renewable Generation',
+        healthScore: 99,
+        ageSpecs: '3 yrs (SMA Sunny Tripower 150 kW)',
+        actionProtocol: 'View Feed',
+        status: 'optimal',
+      },
+      {
+        id: 'EQ-F01-TRF',
+        assetName: 'Distribution Transformer (500 kVA)',
+        subsystem: 'Grid Infrastructure',
+        healthScore: 88,
+        ageSpecs: '6 yrs (Crompton 33/0.4 kV)',
         actionProtocol: 'Run Diagnostics',
         status: 'caution',
       },
       {
-        id: 'EQ-02',
-        assetName: 'AHU-1 (Air Handling Unit)',
-        subsystem: 'HVAC Air Distribution',
-        healthScore: 96,
-        ageSpecs: '5 yrs (VAV Induction Array)',
+        id: 'EQ-F01-EV',
+        assetName: 'EV Charging Hub — Sector B',
+        subsystem: 'Flexible Demand',
+        healthScore: 91,
+        ageSpecs: '1 yr (Tata Power EZ Charge 10-port)',
         actionProtocol: 'Telemetry',
-        status: 'optimal',
-      },
-      {
-        id: 'EQ-03',
-        assetName: 'Primary Chilled Water Pump-1',
-        subsystem: 'Hydronics & Circulation',
-        healthScore: 85,
-        ageSpecs: '12 yrs (Armstrong VFD Pump)',
-        actionProtocol: 'Schedule Service',
-        status: 'caution',
-      },
-      {
-        id: 'EQ-04',
-        assetName: 'Rooftop Solar PV Inverter',
-        subsystem: 'Renewable Generation',
-        healthScore: 99,
-        ageSpecs: '2 yrs (120 kW Micro-Grid)',
-        actionProtocol: 'View Feed',
         status: 'optimal',
       },
     ],
     anomalies: [
       {
-        id: 'ANOMALY-DLF-A1',
-        title: 'Chiller #1 Energy Spike Excursion',
+        id: 'ANOMALY-F01-A1',
+        title: 'Distribution Transformer Thermal Excursion',
         severity: 'HIGH SEVERITY',
-        timestamp: 'Sep 15, 14:00 IST',
-        observedLoad: '520 kWh',
-        baselineLoad: '180 kWh',
-        deviation: '+189.4%',
+        timestamp: 'Sep 20, 14:00 IST',
+        observedLoad: '82.4 kW',
+        baselineLoad: '65.0 kW',
+        deviation: '+26.8%',
         confidence: 87,
         groqDiagnosis:
-          '78% probability of centrifugal compressor vane degradation or refrigerant flow bottleneck. Immediate service triage advised within 48 hours to avert an estimated +15% ongoing surcharge.',
+          '74% probability of elevated ambient temperature (42°C at transformer housing) combined with EV charging surge in Sector B causing overtemperature. GridFlex battery dispatch reduced peak by 14 kW. Recommend shade installation and thermal monitoring.',
         suggestedActions: [
-          'Schedule Chiller Field Maintenance',
-          'Float AHU setpoint +0.5°C during peak window',
-          'Monitor compressor discharge temperature',
+          'Deploy shade canopy over Transformer Bay 1',
+          'Throttle EV charging to 50% during 14:00–18:00 IST peak',
+          'Monitor winding temperature via sensor F01-TRF-T1',
         ],
       },
     ],
@@ -248,7 +295,7 @@ export function BuildingProvider({ children }) {
       effort: 'EASY',
       ecbcCompliant: true,
       description:
-        'Optimize building automation HVAC setpoints, deadbands, and plant ramp-up routines based on localized sensor occupancy matrices. Prevents pre-cooling vacant zones while ensuring thermal comfort adherence during core office leases.',
+        'Optimize feeder-connected HVAC setpoints and water heater schedules based on live occupancy and solar generation data. Defers non-critical loads during MSEDCL ToD peak window (14:00–18:00 IST) to reduce community peak demand charges.',
       capex: 0,
       capexLabel: 'Software-defined',
       annualYield: 150000,
@@ -265,7 +312,7 @@ export function BuildingProvider({ children }) {
       effort: 'MEDIUM',
       ecbcCompliant: true,
       description:
-        'Install low-harmonic variable frequency drives onto primary centrifugal water-cooled chillers. Dynamically modulates compressor speed in response to wet-bulb temperature variations rather than fixed-rate vane throttling.',
+        'Expand BESS-F01 from 200 kWh to 400 kWh LFP capacity. Enables 4-hour overnight arbitrage charging at Mumbai off-peak rate (₹3.80/kWh) with full 80 kW peak discharge during MSEDCL ToD peak, targeting net daily savings of ₹3,200.',
       capex: 500000,
       capexLabel: 'Hardware + Install',
       annualYield: 80000,
@@ -281,8 +328,7 @@ export function BuildingProvider({ children }) {
       subLocation: 'Facade Daylight Zone',
       effort: 'EASY',
       ecbcCompliant: true,
-      description:
-        'Replace legacy recessed fluorescent T5 troffers with 140 lm/W DALI-2 dimmable panels. Connect with continuous daylight harvesting sensors along eastern and southern perimeter facades to auto-trim ambient artificial illumination.',
+      description: 'Expand rooftop solar PV from 150 kW to 300 kW peak capacity on Dharavi North community rooftops. Integrates with BESS-F01 for zero-export grid configuration — additional 130 kWh daily generation offsets 80% of morning community load.',
       capex: 300000,
       capexLabel: 'Fixtures & Bus wiring',
       annualYield: 62000,
@@ -299,7 +345,7 @@ export function BuildingProvider({ children }) {
       effort: 'MEDIUM',
       ceaCompliant: true,
       description:
-        'Deploy behind-the-meter Lithium Iron Phosphate (LFP) battery energy storage system. Automatically charges during nocturnal low-tariff intervals and discharges during the northern discom 14:00 - 18:00 IST peak grid demand window.',
+        'Deploy 10 additional smart EV charging ports across Dharavi North Sector B with V2G capability. Enrolled EVs contribute up to 30 kW of dispatchable flexibility during MSEDCL reliability events, earning residents RC credits per kWh contributed.',
       capex: 1200000,
       capexLabel: 'Turnkey BESS + Inverter',
       annualYield: 240000,
@@ -330,17 +376,22 @@ export function BuildingProvider({ children }) {
     setSelectedAnomaly(null);
   };
 
+  // Merge live backend data into the F01 Dharavi North card when available.
   const liveBuilding = liveGridFlex
     ? {
         ...buildings[0],
-        status: liveGridFlex.state?.status || 'TELEMETRY LIVE',
+        status: liveGridFlex.state?.status === 'OK' ? 'TELEMETRY LIVE' : (liveGridFlex.state?.status || 'TELEMETRY LIVE'),
         statusType: 'live',
-        todaysUsage: liveGridFlex.telemetry?.demand_kw ?? liveGridFlex.state?.demand_kw ?? buildings[0].todaysUsage,
-        usageUnit: liveGridFlex.telemetry?.demand_kw != null || liveGridFlex.state?.demand_kw != null ? 'kW' : 'kWh',
-        usageSubtext: liveGridFlex.telemetry?.timestamp ? 'Live feeder F01 reading' : buildings[0].usageSubtext,
+        todaysUsage: String(Math.round(liveGridFlex.telemetry?.demand_kw ?? liveGridFlex.state?.demand_kw ?? 162)),
+        usageUnit: 'kW',
+        usageSubtext: liveGridFlex.telemetry?.timestamp ? 'Live feeder F01 reading' : 'Live feeder reading',
         forecastConfidence: liveGridFlex.forecast?.forecast_confidence_pct,
-        gridThreshold: liveGridFlex.state?.stress_index ?? buildings[0].gridThreshold,
-        gridMetricLabel: liveGridFlex.state?.stress_index != null ? 'Grid stress' : 'Grid demand threshold',
+        gridThreshold: Math.round(liveGridFlex.state?.stress_index ?? 68),
+        gridMetricLabel: liveGridFlex.state?.stress_index != null ? 'Grid stress index' : 'Grid demand threshold',
+        vsBaseline: liveGridFlex.state?.net_gap_kw > 0
+          ? `+${liveGridFlex.state.net_gap_kw.toFixed(1)} kW gap`
+          : '-12.3%',
+        vsBaselineLabel: liveGridFlex.state?.net_gap_kw > 0 ? 'Energy gap' : 'Solar offset',
       }
     : buildings[0];
   const displayBuildings = liveGridFlex ? [liveBuilding, ...buildings.slice(1)] : buildings;

@@ -1,11 +1,36 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBuildingContext } from '../context/BuildingContext';
+import { useGridState } from '../context/GridStateContext';
 import { Zap, Clock, ShieldCheck, Sun, Wind, Activity, ArrowRight, Download, CheckCircle2, MapPin, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export function GridOpsPage() {
+  const navigate = useNavigate();
   const { isAutoDREnabled, setIsAutoDREnabled, theme } = useBuildingContext();
+  const { feederState, triggerCloudEvent, resetSimulation, isCloudEvent } = useGridState();
   const isLight = theme === 'light';
+
+  // Live values from backend — feeder state
+  const batterySoc = feederState?.battery_soc_pct ?? 80;
+  const totalFlexKw = feederState?.total_flexible_kw ?? 127.5;
+  const riskLevel = feederState?.risk_level ?? 'LOW';
+  const demandKw = feederState?.demand_kw ?? 162;
+  const solarKw  = feederState?.solar_kw  ?? 118;
+
+  // Export DR settlement data as CSV download
+  const exportSettlementCSV = () => {
+    const rows = [
+      ['Date', 'Earnings (INR)', 'Load Shifted (kWh)'],
+      ...drEarningsData.map(d => [d.date, d.earnings, Math.round(d.earnings / 5.4)]),
+    ];
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'gridflex_dr_settlement_f01.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const drEarningsData = [
     { date: 'Sep 06', earnings: 450 },
@@ -59,7 +84,7 @@ export function GridOpsPage() {
             </h1>
           </div>
           <p style={{ fontFamily: 'DM Sans', fontSize: '0.92rem', color: isLight ? '#3A4A3E' : '#94A3B8' }}>
-            Real-time grid signals and building flexibility metrics • Northern Regional Load Despatch Centre (NRLDC) Feed
+            Real-time MSEDCL grid signals and Mumbai feeder flexibility metrics • Western Regional Load Despatch Centre (WRLDC) Feed
           </p>
         </div>
 
@@ -253,7 +278,7 @@ export function GridOpsPage() {
                   TARGET CURTAILMENT CAPACITY
                 </div>
                 <div style={{ fontFamily: 'JetBrains Mono', fontSize: '1.8rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8' }}>
-                  120 <span style={{ fontSize: '0.9rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>kWh Load across Delhi Tech Park</span>
+                  127 <span style={{ fontSize: '0.9rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>kW Flexible Demand — Feeder F01 Dharavi</span>
                 </div>
               </div>
 
@@ -268,7 +293,7 @@ export function GridOpsPage() {
             </div>
 
             <p style={{ fontFamily: 'Outfit', fontSize: '0.78rem', color: isLight ? '#5C6B61' : '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <MapPin size={13} color="#D4841A" /> NRLDC Forecast: Peak hours likely to extend to 19:00 IST due to regional heat index (25% confidence interval).
+              <MapPin size={13} color="#D4841A" /> WRLDC Forecast: Mumbai metro peak window may extend to 19:30 IST — high humidity (87% RH) driving HVAC load (25% confidence).
             </p>
           </div>
 
@@ -309,15 +334,18 @@ export function GridOpsPage() {
             </div>
 
             <div>
-              <button
-                onClick={() => setIsAutoDREnabled(!isAutoDREnabled)}
-                className="btn-primary"
-                style={{ width: '100%', padding: '12px', fontSize: '0.9rem', marginBottom: '8px', backgroundColor: isLight ? '#0D472B' : '#D4841A', color: '#FFFFFF' }}
-              >
-                <span>{isAutoDREnabled ? 'Activate Full Auto-DR' : 'Auto-DR Active'}</span>
-              </button>
+                <button
+                  onClick={() => setIsAutoDREnabled(!isAutoDREnabled)}
+                  className="btn-primary"
+                  title={isAutoDREnabled ? 'Click to disable Auto-DR' : 'Click to enable Auto-DR'}
+                  style={{ width: '100%', padding: '12px', fontSize: '0.9rem', marginBottom: '8px', backgroundColor: isAutoDREnabled ? '#059669' : (isLight ? '#0D472B' : '#D4841A'), color: '#FFFFFF' }}
+                >
+                  <span>{isAutoDREnabled ? '● Auto-DR Active — Click to Disable' : 'Activate Full Auto-DR'}</span>
+                </button>
               <div style={{ textAlign: 'center' }}>
                 <button
+                  onClick={() => navigate('/simulation')}
+                  title="Open Simulation Console to adjust protocol rules"
                   style={{
                     background: 'none',
                     border: 'none',
@@ -327,7 +355,7 @@ export function GridOpsPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  Override Protocol Rules →
+                  Simulation Console →
                 </button>
               </div>
             </div>
@@ -342,7 +370,7 @@ export function GridOpsPage() {
             Regional Grid Generation Mix
           </h3>
           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: isLight ? '#5C6B61' : '#64748B' }}>
-            Updated 2 mins ago • State Grid Node B4
+            Updated 2 mins ago • MSEDCL WRLDC Node W-MUM-03
           </span>
         </div>
 
@@ -430,7 +458,7 @@ export function GridOpsPage() {
           }}
         >
           <AlertTriangle size={16} color="#D4841A" />
-          <span><strong>Grid Advisory:</strong> Solar generation declining as sunset approaches (18:15 IST). NRLDC will ramp thermal peaking gas turbines within 90 minutes. High peak tariff window anticipated until 20:00 IST.</span>
+          <span>              <strong>MSEDCL Grid Advisory:</strong> Solar generation declining as Mumbai sunset approaches (18:15 IST). WRLDC will ramp Tarapur peaking units within 90 minutes. High ToD tariff window (₹15.50/kWh) anticipated until 20:00 IST.</span>
         </div>
       </div>
 
@@ -441,7 +469,7 @@ export function GridOpsPage() {
             Facility Flexibility & Asset Dispatch
           </h3>
           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: isLight ? '#B45309' : '#E89B3C' }}>
-            Available Controllable Capacity: 120 kWh
+            Available Controllable Capacity: {totalFlexKw} kW — F01 Dharavi
           </span>
         </div>
 
@@ -454,7 +482,7 @@ export function GridOpsPage() {
                   HVAC Precision Pre-Cooling & Chiller Ramp
                 </h4>
                 <p style={{ fontFamily: 'DM Sans', fontSize: '0.78rem', color: isLight ? '#5C6B61' : '#64748B' }}>
-                  District Chiller Plant A & B • Thermal Mass Buffer
+                   BESS-F01 + EV Charging Hub (Sector B) • Dharavi North
                 </p>
               </div>
               <span className="badge badge-optimal">• ACTIVE • DISPATCHED</span>
@@ -476,20 +504,26 @@ export function GridOpsPage() {
             </div>
 
             <p style={{ fontFamily: 'DM Sans', fontSize: '0.8rem', color: isLight ? '#3A4A3E' : '#94A3B8', marginBottom: '16px' }}>
-              Strategy: Subcooled Delhi Tech Park to 21.5°C between 12:30–13:45 IST; VFD setpoint floated to 24.0°C during peak tariff window.
+              Strategy: BESS-F01 ({batterySoc}% SoC live) discharging to cover solar gap; EV charging throttled during ToD peak. Water heaters deferred 3h to reduce demand.
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
+                <button
+                  onClick={() => setIsAutoDREnabled(false)}
+                  title="Disable automated dispatch"
+                  style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
                   Pause Dispatch
                 </button>
-                <button style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
-                  Adjust Setpoint Deadband
+                <button
+                  onClick={() => navigate('/simulation')}
+                  title="Open Simulation Console"
+                  style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
+                  Simulation Console
                 </button>
               </div>
-              <button style={{ background: 'none', border: 'none', color: isLight ? '#0D472B' : '#E89B3C', fontFamily: 'Space Grotesk', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-                Telemetry Logs →
+              <button onClick={() => navigate('/operator')} style={{ background: 'none', border: 'none', color: isLight ? '#0D472B' : '#E89B3C', fontFamily: 'Space Grotesk', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                Grid Operator →
               </button>
             </div>
           </div>
@@ -517,8 +551,8 @@ export function GridOpsPage() {
               </div>
               <div>
                 <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.62rem', color: isLight ? '#5C6B61' : '#64748B' }}>STATE OF CHARGE (SOC)</div>
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '1.4rem', fontWeight: 700, color: '#059669' }}>
-                  68%
+              <div style={{ fontFamily: 'JetBrains Mono', fontSize: '1.4rem', fontWeight: 700, color: '#059669' }}>
+                  {batterySoc}%
                 </div>
               </div>
             </div>
@@ -529,15 +563,21 @@ export function GridOpsPage() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
-                  Lock Reserve for Backup
+                <button
+                  onClick={() => navigate('/reliability')}
+                  title="View reliability metrics and reserve status"
+                  style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
+                  View Reserve Status
                 </button>
-                <button style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
-                  Modify Discharge Profile
+                <button
+                  onClick={() => navigate('/simulation')}
+                  title="Open simulation to model discharge scenarios"
+                  style={{ padding: '6px 12px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer' }}>
+                  Simulate Discharge
                 </button>
               </div>
-              <button style={{ background: 'none', border: 'none', color: isLight ? '#0D472B' : '#E89B3C', fontFamily: 'Space Grotesk', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-                Inverter Health →
+              <button onClick={() => navigate('/operator')} style={{ background: 'none', border: 'none', color: isLight ? '#0D472B' : '#E89B3C', fontFamily: 'Space Grotesk', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                Grid Operator →
               </button>
             </div>
           </div>
@@ -561,7 +601,7 @@ export function GridOpsPage() {
             </h3>
           </div>
           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: isLight ? '#5C6B61' : '#64748B' }}>
-            Settlement Cycle: DISCOM NDPL-2024-Q3
+            Settlement Cycle: MSEDCL-2026-Q3 Mumbai
           </span>
         </div>
 
@@ -591,7 +631,7 @@ export function GridOpsPage() {
             <div style={{ fontFamily: 'JetBrains Mono', fontSize: '1.6rem', fontWeight: 700, color: '#059669' }}>
               ₹6,800 <span style={{ fontSize: '0.8rem', color: '#059669' }}>+18% vs prior month</span>
             </div>
-            <div style={{ fontFamily: 'DM Sans', fontSize: '0.75rem', color: isLight ? '#5C6B61' : '#64748B' }}>Credited directly to commercial tariff bill</div>
+            <div style={{ fontFamily: 'DM Sans', fontSize: '0.75rem', color: isLight ? '#5C6B61' : '#64748B' }}>            Credited to MSEDCL ToD commercial tariff bill</div>
           </div>
 
           <div>
@@ -623,18 +663,15 @@ export function GridOpsPage() {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: isLight ? '#5C6B61' : '#64748B' }}>
-          <span>*Sep 15 figure includes real-time Level 2 automated DR curtailment estimates.</span>
+          <span>*Sep 20 figure includes real-time Level 2 automated DR curtailment estimates — Feeder F01 Dharavi North.</span>
           <button
+            onClick={exportSettlementCSV}
+            title="Download DR settlement data as CSV"
             style={{
-              background: 'none',
-              border: 'none',
+              background: 'none', border: 'none',
               color: isLight ? '#0D472B' : '#E89B3C',
-              fontFamily: 'Space Grotesk',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
+              fontFamily: 'Space Grotesk', fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
             }}
           >
             <Download size={13} />

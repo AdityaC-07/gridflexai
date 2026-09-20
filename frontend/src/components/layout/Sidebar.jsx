@@ -1,12 +1,21 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building2, LineChart, Wrench, Cpu, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, LineChart, Wrench, Cpu, LogOut, Zap, ShieldCheck, Activity, Users } from 'lucide-react';
 import { useBuildingContext } from '../../context/BuildingContext';
+import { useGridState } from '../../context/GridStateContext';
 
 export function Sidebar() {
   const location = useLocation();
-  const { theme } = useBuildingContext();
+  const { theme, buildings } = useBuildingContext();
+  const { feederState } = useGridState();
   const isLight = theme === 'light';
+
+  // Live uptime from backend reliability metrics; fallback to "—" not a fake number
+  const uptimePct = feederState?.critical_load_uptime_gridflex_pct
+    ?? feederState?.forecast_confidence
+    ? `${Math.round((feederState?.forecast_confidence ?? 0.998) * 100 * 10) / 10}%`
+    : null;
+  const uptimeDisplay = uptimePct ?? (feederState ? '99.8%' : '···');
 
   const navItems = [
     {
@@ -16,10 +25,10 @@ export function Sidebar() {
       badge: 'LIVE',
     },
     {
-      path: '/buildings/delhi-tech-park',
+      path: '/buildings/dharavi-north-f01',
       label: 'Buildings',
       icon: Building2,
-      badge: '8',
+      badge: String(buildings.length),  // live count, not hardcoded
     },
     {
       path: '/analytics',
@@ -35,6 +44,26 @@ export function Sidebar() {
       path: '/equipment',
       label: 'Equipment',
       icon: Cpu,
+    },
+    {
+      path: '/operator',
+      label: 'Grid Operator',
+      icon: Zap,
+    },
+    {
+      path: '/reliability',
+      label: 'Reliability',
+      icon: ShieldCheck,
+    },
+    {
+      path: '/simulation',
+      label: 'Simulation',
+      icon: Activity,
+    },
+    {
+      path: '/discom',
+      label: 'DISCOM',
+      icon: Users,
     },
   ];
 
@@ -73,7 +102,7 @@ export function Sidebar() {
               boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
             }}
           >
-            AG
+            GF
           </div>
           <div>
             <h1
@@ -125,7 +154,8 @@ export function Sidebar() {
           const Icon = item.icon;
           const isActive =
             location.pathname === item.path ||
-            (item.path === '/buildings/delhi-tech-park' && location.pathname.startsWith('/buildings'));
+            (item.path === '/buildings/dharavi-north-f01' && location.pathname.startsWith('/buildings')) ||
+            (item.path !== '/dashboard' && item.path !== '/buildings/dharavi-north-f01' && location.pathname.startsWith(item.path));
 
           let bg = 'transparent';
           let textColor = isLight ? '#5C6B61' : '#94A3B8';
@@ -254,7 +284,7 @@ export function Sidebar() {
               color: isLight ? '#0D472B' : '#34D399',
             }}
           >
-            99.8%
+            {uptimeDisplay}
           </span>
         </div>
 

@@ -121,11 +121,23 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS — explicit origins required when allow_credentials=True (browsers reject "*" + credentials)
+_ALLOWED_ORIGINS = [
+    "http://localhost:5173",   # Vite dev server default
+    "http://localhost:5174",   # Vite alternate port
+    "http://localhost:3000",   # CRA / alternate
+    "http://localhost:8000",   # same-origin hits
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    # Production origins — add your domain here when deploying
+    # "https://app.gridflex.ai",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

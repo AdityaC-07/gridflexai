@@ -2,32 +2,72 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sliders, CloudRain, RotateCcw, ArrowRight, Zap, Database } from 'lucide-react';
 import { useGridState } from '../context/GridStateContext';
+import { useBuildingContext } from '../context/BuildingContext';
 
 export function SimulationPage() {
   const navigate = useNavigate();
-  const { isCloudEvent, triggerCloudEvent, resetSimulation, isLoading, isUsingMock } = useGridState();
+  const { isCloudEvent, triggerCloudEvent, resetSimulation, isLoading } = useGridState();
+  const { theme } = useBuildingContext();
+  const isLight = theme === 'light';
+
+  // Theme tokens
+  const bg        = isLight ? '#FFFFFF' : '#111111';
+  const bgPage    = isLight ? '#F4F7EF' : '#0F0F0F';
+  const border    = isLight ? '#E2E8DC' : '#1E1E1E';
+  const borderMid = isLight ? '#E2E8F0' : '#242424';
+  const textPri   = isLight ? '#0F172A' : '#F5F1E8';
+  const textSec   = isLight ? '#475569' : '#94A3B8';
+  const textDim   = isLight ? '#64748B' : '#64748B';
+  const bgCard    = isLight ? '#FAFAFC' : '#161616';
+
+  // Cloud event palette
+  const cloudBg     = isLight ? '#FFFBEB' : '#1C1608';
+  const cloudBorder = isLight ? '#FDE68A' : '#78350F';
+  const cloudTitle  = isLight ? '#78350F' : '#FCD34D';
+  const cloudSub    = isLight ? '#92400E' : '#FDE68A';
+
+  // Normal palette
+  const normalBg     = isLight ? '#ECFDF5' : '#071410';
+  const normalBorder = isLight ? '#A7F3D0' : '#064E3B';
+  const normalTitle  = isLight ? '#065F46' : '#34D399';
+  const normalSub    = isLight ? '#047857' : '#6EE7B7';
+
+  // Param cards
+  const paramBg     = isLight ? '#F8FAFC' : '#161616';
+  const paramBorder = isLight ? '#E2E8F0' : '#242424';
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-      
+    <div style={{ maxWidth: '900px', margin: '0 auto', color: textPri }}>
+
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Sliders size={24} color="#0284C7" />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#0F172A' }}>
+          <Sliders size={24} color={isLight ? '#0284C7' : '#E89B3C'} />
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: textPri }}>
             Grid Operations Scenario Simulator
           </h2>
         </div>
-        <p style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '2px' }}>
+        <p style={{ fontSize: '0.875rem', color: textDim, marginTop: '2px' }}>
           Inject physical solar cloud events or demand surges to evaluate GridFlex AI intelligence response.
         </p>
       </div>
 
-      {/* Main Control Console Card */}
-      <div className="ops-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-        <div className="ops-panel-header" style={{ margin: '-24px -24px 20px -24px', borderRadius: '6px 6px 0 0' }}>
-          <div className="ops-panel-title">
-            <Zap size={16} color="#0284C7" />
+      {/* Main Control Console */}
+      <div style={{ backgroundColor: bg, border: `1px solid ${border}`, borderRadius: '6px', padding: '24px', marginBottom: '24px' }}>
+
+        {/* Panel header */}
+        <div style={{
+          margin: '-24px -24px 20px -24px',
+          padding: '12px 20px',
+          backgroundColor: isLight ? '#F8FAFC' : '#0A0A0A',
+          borderBottom: `1px solid ${borderMid}`,
+          borderRadius: '6px 6px 0 0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', fontWeight: 700, color: textSec, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <Zap size={16} color={isLight ? '#0284C7' : '#E89B3C'} />
             <span>Target Asset: Feeder F01 (Dharavi North)</span>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -43,23 +83,23 @@ export function SimulationPage() {
 
         {/* Status Box */}
         <div style={{
-          backgroundColor: isCloudEvent ? '#FFFBEB' : '#ECFDF5',
-          border: isCloudEvent ? '1px solid #FDE68A' : '1px solid #A7F3D0',
+          backgroundColor: isCloudEvent ? cloudBg : normalBg,
+          border: `1px solid ${isCloudEvent ? cloudBorder : normalBorder}`,
           borderRadius: '8px',
           padding: '20px',
           marginBottom: '24px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
         }}>
           <div>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: isCloudEvent ? '#B45309' : '#047857', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: isCloudEvent ? (isLight ? '#B45309' : '#FBBF24') : (isLight ? '#047857' : '#34D399'), letterSpacing: '0.05em' }}>
               OPERATING CONDITION
             </div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: isCloudEvent ? '#78350F' : '#065F46', marginTop: '2px' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: isCloudEvent ? cloudTitle : normalTitle, marginTop: '2px' }}>
               {isCloudEvent ? 'Severe Cloud Event Active (79% Degradation)' : 'Normal Solar & Demand Profile'}
             </h3>
-            <p style={{ fontSize: '0.85rem', color: isCloudEvent ? '#92400E' : '#047857', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.85rem', color: isCloudEvent ? cloudSub : normalSub, marginTop: '4px' }}>
               {isCloudEvent
                 ? 'Solar output collapsed from ~118 kW to ~25 kW. 80 kW net energy gap active.'
                 : 'Solar generation ~118 kW, demand ~162 kW. Zero net energy gap.'}
@@ -72,11 +112,14 @@ export function SimulationPage() {
                 <span className="tech-tag tech-tag-warning" style={{ fontSize: '0.85rem', padding: '6px 12px' }}>
                   79% SEVERITY
                 </span>
-                {/* Priority 13: View Grid Impact Navigation CTA */}
                 <button
                   onClick={() => navigate('/operator')}
-                  className="ops-btn ops-btn-warning"
-                  style={{ fontSize: '0.8rem', padding: '8px 14px', boxShadow: '0 2px 4px rgba(217, 119, 6, 0.15)' }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 14px', borderRadius: '4px',
+                    backgroundColor: '#D97706', border: 'none', color: '#FFFFFF',
+                    fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
+                  }}
                 >
                   <span>VIEW GRID IMPACT</span>
                   <ArrowRight size={14} />
@@ -92,63 +135,80 @@ export function SimulationPage() {
 
         {/* Trigger Controls */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          
-          {/* Action 1: Trigger Cloud Event */}
+
+          {/* Inject Cloud Event */}
           <div style={{
-            backgroundColor: '#FAFAFC',
-            border: '1px solid #E2E8F0',
+            backgroundColor: bgCard,
+            border: `1px solid ${borderMid}`,
             borderRadius: '8px',
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
-            justify: 'space-between'
+            justifyContent: 'space-between',
+            gap: '16px',
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#D97706', fontWeight: 700, fontSize: '0.95rem' }}>
                 <CloudRain size={20} />
                 <span>Inject Cloud Event</span>
               </div>
-              <p style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '6px', lineHeight: 1.4 }}>
+              <p style={{ fontSize: '0.8rem', color: textSec, marginTop: '6px', lineHeight: 1.4 }}>
                 Simulates rapid solar irradiance loss over Dharavi North. Solar generation drops by 79% (118 kW → 25 kW) for a 150-minute duration.
               </p>
             </div>
-
             <button
               onClick={() => triggerCloudEvent(79)}
               disabled={isLoading || isCloudEvent}
-              className="ops-btn ops-btn-warning"
-              style={{ width: '100%', marginTop: '20px', padding: '12px' }}
+              style={{
+                width: '100%', padding: '12px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                backgroundColor: isLoading || isCloudEvent ? (isLight ? '#D1D5DB' : '#2A2A2A') : '#D97706',
+                border: 'none', borderRadius: '4px',
+                color: isLoading || isCloudEvent ? (isLight ? '#9CA3AF' : '#64748B') : '#FFFFFF',
+                fontWeight: 700, fontSize: '0.85rem',
+                cursor: isLoading || isCloudEvent ? 'not-allowed' : 'pointer',
+                transition: 'all 150ms ease',
+              }}
             >
               <CloudRain size={16} />
               <span>Trigger Cloud Event — Severe (79%)</span>
             </button>
           </div>
 
-          {/* Action 2: Reset to Normal State */}
+          {/* Reset to Normal */}
           <div style={{
-            backgroundColor: '#FAFAFC',
-            border: '1px solid #E2E8F0',
+            backgroundColor: bgCard,
+            border: `1px solid ${borderMid}`,
             borderRadius: '8px',
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
-            justify: 'space-between'
+            justifyContent: 'space-between',
+            gap: '16px',
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '0.95rem' }}>
                 <RotateCcw size={20} />
                 <span>Reset to Balanced State</span>
               </div>
-              <p style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '6px', lineHeight: 1.4 }}>
+              <p style={{ fontSize: '0.8rem', color: textSec, marginTop: '6px', lineHeight: 1.4 }}>
                 Clears all cloud events and restores standard daylight solar irradiance profiles and normal demand telemetry.
               </p>
             </div>
-
             <button
               onClick={() => resetSimulation()}
               disabled={isLoading || !isCloudEvent}
-              className="ops-btn ops-btn-outline"
-              style={{ width: '100%', marginTop: '20px', padding: '12px' }}
+              style={{
+                width: '100%', padding: '12px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                backgroundColor: 'transparent',
+                border: `1px solid ${isLoading || !isCloudEvent ? (isLight ? '#D1D5DB' : '#333') : (isLight ? '#D1D5DB' : '#3A3A3A')}`,
+                borderRadius: '4px',
+                color: isLoading || !isCloudEvent ? (isLight ? '#9CA3AF' : '#4B5563') : textPri,
+                fontWeight: 600, fontSize: '0.85rem',
+                cursor: isLoading || !isCloudEvent ? 'not-allowed' : 'pointer',
+                transition: 'all 150ms ease',
+              }}
             >
               <RotateCcw size={16} />
               <span>Reset Scenario to Normal</span>
@@ -157,32 +217,23 @@ export function SimulationPage() {
         </div>
       </div>
 
-      {/* Scenario Parameters Card */}
-      <div className="ops-panel" style={{ padding: '20px' }}>
-        <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>
+      {/* Scenario Parameters */}
+      <div style={{ backgroundColor: bg, border: `1px solid ${border}`, borderRadius: '6px', padding: '20px' }}>
+        <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: textSec, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>
           Simulated Cloud Event Parameters (Backend Contract)
         </h4>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', fontSize: '0.775rem' }}>
-          <div style={{ backgroundColor: '#F8FAFC', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B' }}>SEVERITY DEGRADATION</div>
-            <div style={{ fontWeight: 700, color: '#D97706', fontFamily: 'monospace', fontSize: '1rem' }}>79%</div>
-          </div>
-
-          <div style={{ backgroundColor: '#F8FAFC', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B' }}>DURATION WINDOW</div>
-            <div style={{ fontWeight: 700, color: '#0F172A', fontFamily: 'monospace', fontSize: '1rem' }}>150 Minutes</div>
-          </div>
-
-          <div style={{ backgroundColor: '#F8FAFC', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B' }}>SOLAR BEFORE / AFTER</div>
-            <div style={{ fontWeight: 700, color: '#0F172A', fontFamily: 'monospace', fontSize: '0.95rem' }}>118 kW → 25 kW</div>
-          </div>
-
-          <div style={{ backgroundColor: '#F8FAFC', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B' }}>RESULTING ENERGY GAP</div>
-            <div style={{ fontWeight: 700, color: '#DC2626', fontFamily: 'monospace', fontSize: '1rem' }}>80 kW</div>
-          </div>
+          {[
+            { label: 'SEVERITY DEGRADATION', value: '79%', color: '#D97706' },
+            { label: 'DURATION WINDOW',      value: '150 Minutes', color: textPri },
+            { label: 'SOLAR BEFORE / AFTER', value: '118 kW → 25 kW', color: textPri },
+            { label: 'RESULTING ENERGY GAP', value: '80 kW', color: '#DC2626' },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ backgroundColor: paramBg, border: `1px solid ${paramBorder}`, padding: '10px', borderRadius: '4px' }}>
+              <div style={{ color: textDim, fontSize: '0.68rem', marginBottom: '4px' }}>{label}</div>
+              <div style={{ fontWeight: 700, color, fontFamily: 'monospace', fontSize: '1rem' }}>{value}</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useBuildingContext } from '../../context/BuildingContext';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Lightbulb, ChevronDown, ChevronUp, FileText, ArrowRight } from 'lucide-react';
+import { Check, X, Lightbulb, ChevronDown, ChevronUp, FileText, ArrowRight, Download } from 'lucide-react';
 
 export function AnalysisCompleteModal() {
-  const { isAnalysisComplete, closeModals, theme } = useBuildingContext();
+  const { isAnalysisComplete, closeModals, retrofits, theme } = useBuildingContext();
   const isLight = theme === 'light';
   const navigate = useNavigate();
   const [expandedIndex, setExpandedIndex] = useState(0);
@@ -14,6 +14,36 @@ export function AnalysisCompleteModal() {
   const handleViewRetrofits = () => {
     closeModals();
     navigate('/retrofits');
+  };
+
+  // Compute real values from actual retrofits data
+  const totalRetrofits = retrofits.length;
+  const totalYield = retrofits.reduce((s, r) => s + r.annualYield, 0);
+  const totalCapex  = retrofits.reduce((s, r) => s + r.capex, 0);
+  const savingsPct  = totalCapex > 0 ? Math.round((totalYield / totalCapex) * 100) : 0;
+
+  const handleDownloadPDF = () => {
+    // Export analysis summary as CSV (PDF generation requires server-side in production)
+    const rows = [
+      ['GridFlex AI — Building Analysis Report'],
+      ['Generated', new Date().toLocaleString()],
+      ['Feeder', 'F01 — Dharavi North'],
+      [],
+      ['RETROFIT OPPORTUNITIES'],
+      ['Title', 'Category', 'CAPEX (INR)', 'Annual Yield (INR)', 'Payback', 'Applicability'],
+      ...retrofits.map(r => [r.title, r.category, r.capex, r.annualYield, r.payback, `${r.applicabilityScore}%`]),
+      [],
+      ['TOTALS'],
+      ['Total CAPEX', totalCapex],
+      ['Total Annual Yield', totalYield],
+      ['Estimated Payback', totalYield > 0 ? `${(totalCapex/totalYield).toFixed(1)} years` : '—'],
+    ];
+    const csv = rows.map(r => Array.isArray(r) ? r.join(',') : r).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gridflex_analysis_report.csv';
+    a.click();
   };
 
   return (
@@ -402,24 +432,20 @@ export function AnalysisCompleteModal() {
           </button>
 
           <button
-            onClick={closeModals}
+            onClick={handleDownloadPDF}
+            title="Download analysis report as CSV"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+              display: 'flex', alignItems: 'center', gap: '8px',
               padding: '12px 18px',
-              backgroundColor: '#1E1E1E',
-              border: '1px solid #3A3A3A',
+              backgroundColor: isLight ? '#EAEFE3' : '#1E1E1E',
+              border: isLight ? '1px solid #DAE2D2' : '1px solid #3A3A3A',
               borderRadius: '4px',
-              color: '#E89B3C',
-              fontFamily: 'Space Grotesk',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
+              color: isLight ? '#0D472B' : '#E89B3C',
+              fontFamily: 'Space Grotesk', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <FileText size={16} />
-            <span>Download PDF</span>
+            <Download size={16} />
+            <span>Download Report</span>
           </button>
 
           <button

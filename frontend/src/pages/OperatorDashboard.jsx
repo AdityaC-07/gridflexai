@@ -10,9 +10,12 @@ import { ReliabilityEventCard } from '../components/cards/ReliabilityEventCard';
 import { FlexibilityPoolPanel } from '../components/cards/FlexibilityPoolPanel';
 import { FeederDigitalTwin } from '../components/cards/FeederDigitalTwin';
 import { useGridState } from '../context/GridStateContext';
+import { useBuildingContext } from '../context/BuildingContext';
 
 export function OperatorDashboard() {
   const { isCloudEvent, feederState, forecastData, optimizationData, approvalStatus, lastUpdated } = useGridState();
+  const { theme } = useBuildingContext();
+  const isLight = theme === 'light';
   const optRef = useRef(null);
 
   const scrollToOptimization = () => {
@@ -28,13 +31,11 @@ export function OperatorDashboard() {
       {/* 1. Header Alert Banner */}
       <AlertBanner onReviewClick={scrollToOptimization} />
 
-      {/* Scenario truthfulness banner: shown only while the frontend-local
-          scenario is active. AWS data stays live; overlaid demand/solar/gap/
-          stress values are scenario values, not live telemetry. */}
+      {/* Scenario truthfulness banner */}
       {isCloudEvent && (
         <div style={{
-          backgroundColor: '#FFFBEB',
-          border: '1px solid #FDE68A',
+          backgroundColor: isLight ? '#FFFBEB' : '#1C1608',
+          border: isLight ? '1px solid #FDE68A' : '1px solid #78350F',
           borderRadius: '6px',
           padding: '10px 18px',
           marginBottom: '20px',
@@ -44,7 +45,7 @@ export function OperatorDashboard() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="tech-tag tech-tag-warning">SCENARIO MODE · Local Scenario Injection</span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#92400E' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: isLight ? '#92400E' : '#FCD34D' }}>
               Demand / solar / gap / stress shown as scenario values. AWS live feed unaffected; optimization response below is live.
             </span>
           </div>
@@ -154,43 +155,48 @@ export function OperatorDashboard() {
         </div>
       )}
 
-      {/* Priority 9: Useful Operational Metadata Strip (Removed static filler metrics) */}
-      <div className="ops-panel" style={{ padding: '14px 20px' }}>
+      {/* Operational Metadata Strip */}
+      <div style={{
+        backgroundColor: isLight ? '#FFFFFF' : '#111111',
+        border: isLight ? '1px solid #E2E8DC' : '1px solid #1E1E1E',
+        borderRadius: '6px',
+        padding: '14px 20px',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', letterSpacing: '0.04em' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: isLight ? '#475569' : '#64748B', letterSpacing: '0.04em' }}>
             OPERATIONAL INTELLIGENCE & TELEMETRY AUDIT
           </div>
           <span className="tech-tag tech-tag-blue">FEEDER F01 MONITOR</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', fontSize: '0.75rem' }}>
-          <div style={{ borderLeft: '2px solid #0284C7', paddingLeft: '8px' }}>
+          <div style={{ borderLeft: `2px solid ${isLight ? '#0284C7' : '#D4841A'}`, paddingLeft: '8px' }}>
             <div style={{ color: '#94A3B8', fontSize: '0.65rem' }}>FORECAST CONFIDENCE</div>
-            <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ fontFamily: 'monospace', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8' }}>
               {forecastData?.forecast_confidence_pct || 89}%
             </div>
           </div>
-          <div style={{ borderLeft: '2px solid #0284C7', paddingLeft: '8px' }}>
+          <div style={{ borderLeft: `2px solid ${isLight ? '#0284C7' : '#D4841A'}`, paddingLeft: '8px' }}>
             <div style={{ color: '#94A3B8', fontSize: '0.65rem' }}>ACTIVE DECISION ID</div>
-            <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284C7' }}>
+            <div style={{ fontFamily: 'monospace', fontWeight: 700, color: isLight ? '#0284C7' : '#E89B3C' }}>
               {optimizationData?.decision_id || 'D-F01-NORMAL-001'}
             </div>
           </div>
-          <div style={{ borderLeft: '2px solid #0284C7', paddingLeft: '8px' }}>
+          <div style={{ borderLeft: `2px solid ${isLight ? '#0284C7' : '#D4841A'}`, paddingLeft: '8px' }}>
             <div style={{ color: '#94A3B8', fontSize: '0.65rem' }}>DECISION STATUS</div>
             <div style={{ fontFamily: 'monospace', fontWeight: 700, color: isCloudEvent ? '#D97706' : '#059669' }}>
               {optimizationData?.status || (isCloudEvent ? 'PENDING_APPROVAL' : 'STABLE')}
             </div>
           </div>
-          <div style={{ borderLeft: '2px solid #0284C7', paddingLeft: '8px' }}>
+          <div style={{ borderLeft: `2px solid ${isLight ? '#0284C7' : '#D4841A'}`, paddingLeft: '8px' }}>
             <div style={{ color: '#94A3B8', fontSize: '0.65rem' }}>OPERATOR APPROVAL</div>
             <div style={{ fontFamily: 'monospace', fontWeight: 700, color: approvalStatus === 'APPROVED' ? '#059669' : (isCloudEvent ? '#D97706' : '#059669') }}>
               {approvalStatus === 'APPROVED' ? 'APPROVED' : (isCloudEvent ? 'AWAITING SIGN-OFF' : 'NOT REQUIRED')}
             </div>
           </div>
-          <div style={{ borderLeft: '2px solid #0284C7', paddingLeft: '8px' }}>
+          <div style={{ borderLeft: `2px solid ${isLight ? '#0284C7' : '#D4841A'}`, paddingLeft: '8px' }}>
             <div style={{ color: '#94A3B8', fontSize: '0.65rem' }}>LAST TELEMETRY UPDATE</div>
-            <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ fontFamily: 'monospace', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8' }}>
               {formattedTime} IST
             </div>
           </div>

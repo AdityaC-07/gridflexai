@@ -1,7 +1,10 @@
 // Configuration for GridFlex AI Frontend
 
 export const CONFIG = {
-  API_BASE_URL: import.meta.env.VITE_API_URL || 'http://13.127.165.59:8000',
+  // VITE_API_URL="" (empty) → use Vite proxy (same-origin, no CORS).
+  // VITE_API_URL="http://localhost:8000" → direct to local backend.
+  // VITE_API_URL="https://api.gridflex.ai" → production backend.
+  API_BASE_URL: import.meta.env.VITE_API_URL ?? '',
   USE_MOCK: import.meta.env.VITE_USE_MOCK === 'true',
   DEFAULT_FEEDER_ID: 'F01',
   DEFAULT_FEEDER_NAME: 'Dharavi North',

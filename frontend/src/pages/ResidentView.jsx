@@ -5,13 +5,14 @@ import axios from 'axios';
 import { CONFIG } from '../config';
 
 export function ResidentView() {
-  const { isCloudEvent } = useGridState();
-  const [contributions, setContributions] = useState({
-    total_kwh: 5.3,
-    events_participated: 1,
-    reliability_credits: 8,
-    monthly_credits: 47
-  });
+  const { isCloudEvent, feederState } = useGridState();
+  // Resident contributions — demo values labelled as such
+  const contributions = {
+    total_kwh: isCloudEvent ? 9.5 : 5.3,
+    events_participated: isCloudEvent ? 2 : 1,
+    reliability_credits: isCloudEvent ? 16 : 8,
+    monthly_credits: isCloudEvent ? 55 : 47,
+  };
   const [activeEvent, setActiveEvent] = useState(null);
 
   useEffect(() => {
@@ -54,10 +55,10 @@ export function ResidentView() {
         }}>
           <div>
             <div style={{ fontSize: '0.75rem', color: '#38BDF8', fontWeight: 600, letterSpacing: '0.04em' }}>
-              DHARAVI NORTH ENERGY NETWORK
+              DHARAVI NORTH · FEEDER F01 · MSEDCL
             </div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '2px' }}>
-              Good evening, Kavita
+              {activeEvent ? 'Grid Alert Active' : 'Grid Status: Normal'}
             </h2>
           </div>
           <div style={{
@@ -206,7 +207,7 @@ export function ResidentView() {
 
             {/* Custom Bar */}
             <div style={{ height: '10px', backgroundColor: '#E2E8F0', borderRadius: '5px', overflow: 'hidden', display: 'flex' }}>
-              <div style={{ width: isCloudEvent ? '78%' : '92%', backgroundColor: '#059669', borderRadius: '5px', transition: 'width 300ms ease' }} />
+              <div style={{ width: feederState ? `${Math.max(10, 100 - (feederState.stress_index ?? 0))}%` : (isCloudEvent ? '78%' : '92%'), backgroundColor: '#059669', borderRadius: '5px', transition: 'width 300ms ease' }} />
             </div>
 
             <div style={{ fontSize: '0.725rem', color: '#64748B', marginTop: '8px', textAlign: 'center' }}>
@@ -240,7 +241,7 @@ export function ResidentView() {
 
         {/* Footer */}
         <div style={{ backgroundColor: '#F8FAFC', padding: '12px 24px', borderTop: '1px solid #E2E8F0', textAlign: 'center', fontSize: '0.725rem', color: '#94A3B8' }}>
-          GridFlex AI · Resident Service Portal · Household #24-D
+          GridFlex AI · Feeder F01 Dharavi North · MSEDCL Community Portal
         </div>
       </div>
     </div>

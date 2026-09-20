@@ -43,6 +43,28 @@ def telemetry_current(feeder_id: str) -> dict:
     mem = MEMORY_TELEMETRY.get(feeder_id, [])
     if mem:
         return mem[-1]
+    # Cold-start fallback: synthesize a telemetry reading from the latest
+    # feeder state so the frontend never receives a 404 on first boot.
+    # This is clearly marked source="synthesized" so consumers can detect it.
+    from app.core.store import get_latest_feeder_state
+    state = get_latest_feeder_state(feeder_id)
+    if state and state.get("status") == "OK":
+        synthetic = {
+            "feeder_id": feeder_id,
+            "timestamp": state.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            "demand_kw": float(state.get("demand_kw", 122.0)),
+            "solar_kw": float(state.get("solar_kw", 118.0)),
+            "battery_soc_pct": float(state.get("battery_soc_pct", 80.0)),
+            "battery_soc_kwh": float(state.get("battery_soc_kwh", 160.0)),
+            "grid_import_kw": float(state.get("grid_import_kw",
+                max(0.0, state.get("demand_kw", 122.0)
+                    - state.get("solar_kw", 118.0)))),
+            "temperature_c": 30.0,
+            "source": "synthesized",
+        }
+        # Persist so subsequent reads hit the store and this path is fast
+        write_telemetry(synthetic)
+        return synthetic
     raise HTTPException(status_code=404, detail=f"No telemetry for {feeder_id}")
 
 
@@ -52,9 +74,10 @@ def telemetry_history(
     hours: float = Query(default=6.0, ge=0.5, le=168.0),
 ) -> dict:
     limit = max(1, min(672, int(float(hours) * 2)))
+    # get_recent_telemetry returns newest-first; reverse to oldest-first for charts
     items = list(reversed(get_recent_telemetry(feeder_id, limit=limit)))
     if not items:
-        items = MEMORY_TELEMETRY.get(feeder_id, [])[-limit:]
+        items = list(MEMORY_TELEMETRY.get(feeder_id, []))[-limit:]
     return {"feeder_id": feeder_id, "hours": hours, "items": items}
 
 

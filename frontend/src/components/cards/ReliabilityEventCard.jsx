@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Clock, Zap, ShieldCheck, CheckCircle, XCircle, Play, Pause } from 'lucide-react';
+import { AlertTriangle, Clock, Zap, ShieldCheck, CheckCircle, Play, Pause } from 'lucide-react';
 import axios from 'axios';
 import { CONFIG } from '../../config';
+import { useBuildingContext } from '../../context/BuildingContext';
 
 export function ReliabilityEventCard({ feederId = 'F01' }) {
+  const { theme } = useBuildingContext();
+  const isLight = theme === 'light';
   const [activeEvent, setActiveEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
@@ -51,24 +54,30 @@ export function ReliabilityEventCard({ feederId = 'F01' }) {
     }
   };
 
+  // Theme tokens
+  const bgCard = isLight ? '#F8FAFC' : '#1A1A1A';
+  const border = isLight ? '#E2E8F0' : '#242424';
+  const valCol = isLight ? '#0F172A' : '#F5F1E8';
+  const dimCol = '#64748B';
+
   const getRiskColor = (level) => {
-    switch (level) {
-      case 'LOW': return { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' };
-      case 'MEDIUM': return { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' };
-      case 'HIGH': return { bg: '#FEF2F2', text: '#DC2626', border: '#FCA5A5' };
-      case 'CRITICAL': return { bg: '#7F1D1D', text: '#FFFFFF', border: '#991B1B' };
-      default: return { bg: '#F1F5F9', text: '#475569', border: '#CBD5E1' };
-    }
+    const m = {
+      LOW:      { bg: isLight ? '#ECFDF5' : 'rgba(5,150,105,0.12)',  text: '#059669', border: isLight ? '#A7F3D0' : 'rgba(5,150,105,0.3)' },
+      MEDIUM:   { bg: isLight ? '#FEF3C7' : 'rgba(217,119,6,0.12)',  text: '#D97706', border: isLight ? '#FDE68A' : 'rgba(217,119,6,0.3)' },
+      HIGH:     { bg: isLight ? '#FEF2F2' : 'rgba(220,38,38,0.12)',  text: '#DC2626', border: isLight ? '#FCA5A5' : 'rgba(220,38,38,0.3)' },
+      CRITICAL: { bg: '#7F1D1D',                                      text: '#FFFFFF', border: '#991B1B' },
+    };
+    return m[level] || { bg: isLight ? '#F1F5F9' : '#1A1A1A', text: isLight ? '#475569' : '#94A3B8', border: isLight ? '#CBD5E1' : '#2A2A2A' };
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'PREDICTED': return { bg: '#FEF3C7', text: '#D97706' };
-      case 'OPERATOR_APPROVED': return { bg: '#DBEAFE', text: '#2563EB' };
-      case 'DISPATCHED': return { bg: '#D1FAE5', text: '#059669' };
-      case 'VERIFIED': return { bg: '#D1FAE5', text: '#059669' };
-      default: return { bg: '#F1F5F9', text: '#64748B' };
-    }
+    const m = {
+      PREDICTED:        { bg: isLight ? '#FEF3C7' : 'rgba(217,119,6,0.15)',  text: '#D97706' },
+      OPERATOR_APPROVED:{ bg: isLight ? '#DBEAFE' : 'rgba(37,99,235,0.15)',  text: '#2563EB' },
+      DISPATCHED:       { bg: isLight ? '#D1FAE5' : 'rgba(5,150,105,0.15)',  text: '#059669' },
+      VERIFIED:         { bg: isLight ? '#D1FAE5' : 'rgba(5,150,105,0.15)',  text: '#059669' },
+    };
+    return m[status] || { bg: isLight ? '#F1F5F9' : '#1A1A1A', text: dimCol };
   };
 
   if (loading) {
@@ -155,37 +164,30 @@ export function ReliabilityEventCard({ feederId = 'F01' }) {
 
         {/* Event Details */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem' }}>
-          <div style={{ backgroundColor: '#F8FAFC', padding: '8px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B', fontWeight: 600 }}>Duration</div>
-            <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{activeEvent.duration_minutes} min</div>
-          </div>
-          <div style={{ backgroundColor: '#F8FAFC', padding: '8px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B', fontWeight: 600 }}>Time to Event</div>
-            <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{activeEvent.time_to_event_minutes || 45} min</div>
-          </div>
-          <div style={{ backgroundColor: '#F8FAFC', padding: '8px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B', fontWeight: 600 }}>Forecast Confidence</div>
-            <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{(activeEvent.forecast_confidence * 100).toFixed(0)}%</div>
-          </div>
-          <div style={{ backgroundColor: '#F8FAFC', padding: '8px', borderRadius: '4px' }}>
-            <div style={{ color: '#64748B', fontWeight: 600 }}>Critical Load</div>
-            <div style={{ fontWeight: 700, fontFamily: 'monospace', color: '#059669' }}>{activeEvent.critical_load_kw} kW</div>
-          </div>
+          {[
+            ['Duration', `${activeEvent.duration_minutes} min`, valCol],
+            ['Time to Event', `${activeEvent.time_to_event_minutes || 45} min`, valCol],
+            ['Forecast Confidence', `${(activeEvent.forecast_confidence * 100).toFixed(0)}%`, valCol],
+            ['Critical Load', `${activeEvent.critical_load_kw} kW`, '#059669'],
+          ].map(([label, val, color]) => (
+            <div key={label} style={{ backgroundColor: bgCard, padding: '8px', borderRadius: '4px', border: `1px solid ${border}` }}>
+              <div style={{ color: dimCol, fontWeight: 600 }}>{label}</div>
+              <div style={{ fontWeight: 700, fontFamily: 'monospace', color }}>{val}</div>
+            </div>
+          ))}
         </div>
 
         {/* Flexibility Pool */}
         <div>
-          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
-            FLEXIBILITY POOL
-          </div>
-          <div style={{ backgroundColor: '#F8FAFC', padding: '8px', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: dimCol, marginBottom: '6px' }}>FLEXIBILITY POOL</div>
+          <div style={{ backgroundColor: bgCard, padding: '8px', borderRadius: '4px', border: `1px solid ${border}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '0.75rem', color: '#475569' }}>Available:</span>
-              <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{activeEvent.flexibility_available_kw} kW</span>
+              <span style={{ fontSize: '0.75rem', color: dimCol }}>Available:</span>
+              <span style={{ fontWeight: 700, fontFamily: 'monospace', color: valCol }}>{activeEvent.flexibility_available_kw} kW</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.75rem', color: '#475569' }}>Needed:</span>
-              <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{activeEvent.predicted_gap_kw} kW</span>
+              <span style={{ fontSize: '0.75rem', color: dimCol }}>Needed:</span>
+              <span style={{ fontWeight: 700, fontFamily: 'monospace', color: valCol }}>{activeEvent.predicted_gap_kw} kW</span>
             </div>
           </div>
         </div>
@@ -193,26 +195,18 @@ export function ReliabilityEventCard({ feederId = 'F01' }) {
         {/* Dispatch Plan */}
         {dispatchPlan && resources.length > 0 && (
           <div>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
-              DISPATCH PLAN
-            </div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: dimCol, marginBottom: '6px' }}>DISPATCH PLAN</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '120px', overflowY: 'auto' }}>
-              {resources.map((resource, idx) => (
-                <div key={resource.resource_id} style={{
-                  backgroundColor: '#F8FAFC',
-                  padding: '6px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '0.75rem'
-                }}>
+              {resources.map((resource) => (
+                <div key={resource.resource_id} style={{ backgroundColor: bgCard, padding: '6px 8px', borderRadius: '4px', border: `1px solid ${border}`, fontSize: '0.75rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {getResourceIcon(resource.resource_type)}
-                      <span style={{ fontWeight: 600 }}>{resource.resource_name}</span>
+                      <span style={{ fontWeight: 600, color: valCol }}>{resource.resource_name}</span>
                     </div>
-                    <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{resource.dispatch_kw} kW</div>
+                    <div style={{ fontWeight: 700, fontFamily: 'monospace', color: valCol }}>{resource.dispatch_kw} kW</div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontSize: '0.7rem', color: '#64748B' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontSize: '0.7rem', color: dimCol }}>
                     <span>Priority {resource.priority}</span>
                     <span>{resource.duration_minutes} min</span>
                   </div>
@@ -224,15 +218,13 @@ export function ReliabilityEventCard({ feederId = 'F01' }) {
 
         {/* Battery Reserve */}
         {activeEvent.battery_reserve_after_pct && (
-          <div style={{ backgroundColor: '#F0FDF4', padding: '8px', borderRadius: '4px', border: '1px solid #BBF7D0' }}>
+          <div style={{ backgroundColor: isLight ? '#F0FDF4' : 'rgba(5,150,105,0.1)', padding: '8px', borderRadius: '4px', border: isLight ? '1px solid #BBF7D0' : '1px solid rgba(5,150,105,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ShieldCheck size={14} color="#059669" />
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#059669' }}>Battery Reserve After</span>
               </div>
-              <span style={{ fontWeight: 700, fontFamily: 'monospace', color: '#059669' }}>
-                {activeEvent.battery_reserve_after_pct}%
-              </span>
+              <span style={{ fontWeight: 700, fontFamily: 'monospace', color: '#059669' }}>{activeEvent.battery_reserve_after_pct}%</span>
             </div>
           </div>
         )}
@@ -295,22 +287,8 @@ export function ReliabilityEventCard({ feederId = 'F01' }) {
             </>
           )}
           {activeEvent.status === 'OPERATOR_APPROVED' && (
-            <div style={{
-              flex: 1,
-              padding: '8px 12px',
-              backgroundColor: '#DBEAFE',
-              color: '#1E40AF',
-              borderRadius: '4px',
-              fontWeight: 600,
-              fontSize: '0.8rem',
-              textAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}>
-              <Play size={14} />
-              Dispatching...
+            <div style={{ flex: 1, padding: '8px 12px', backgroundColor: isLight ? '#DBEAFE' : 'rgba(37,99,235,0.15)', color: '#2563EB', borderRadius: '4px', fontWeight: 600, fontSize: '0.8rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <Play size={14} />Dispatching...
             </div>
           )}
         </div>

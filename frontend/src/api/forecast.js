@@ -60,3 +60,14 @@ export async function getForecast(feederId = 'F01', isCloudEvent = false) {
   if (res.isMock) return res;
   return { ...res, data: normalizeForecast(res.data) };
 }
+
+// Trigger the backend forecast cycle so the store is populated on first load.
+export async function refreshForecast(feederId = 'F01', cloudEvent = null) {
+  try {
+    const body = cloudEvent ? { cloud_event: cloudEvent } : {};
+    const res = await apiClient.post(`/api/v1/forecast/${feederId}/refresh`, body);
+    return { data: normalizeForecast(res.data), isMock: false };
+  } catch {
+    return { data: normalizeForecast(isCloudEvent ? forecastMock.cloud_event : forecastMock.normal), isMock: true };
+  }
+}

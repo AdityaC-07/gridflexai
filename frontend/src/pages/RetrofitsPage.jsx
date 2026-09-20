@@ -1,25 +1,47 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBuildingContext } from '../context/BuildingContext';
 import {
   Wrench,
   CheckCircle,
-  Plus,
   Check,
   Zap,
-  ChevronDown,
   TrendingUp,
   FileText,
   RotateCcw,
+  Download,
 } from 'lucide-react';
 
 export function RetrofitsPage() {
+  const navigate = useNavigate();
   const { retrofits, toggleRetrofitSelection, theme } = useBuildingContext();
   const isLight = theme === 'light';
   const [activeCategory, setActiveCategory] = useState('ALL');
 
-  const selectedCount = retrofits.filter((r) => r.selected).length;
-  const totalCapex = retrofits.filter((r) => r.selected).reduce((acc, r) => acc + r.capex, 0);
-  const totalYield = retrofits.filter((r) => r.selected).reduce((acc, r) => acc + r.annualYield, 0);
+  const selectedCount  = retrofits.filter((r) => r.selected).length;
+  const totalCapex     = retrofits.filter((r) => r.selected).reduce((acc, r) => acc + r.capex, 0);
+  const totalYield     = retrofits.filter((r) => r.selected).reduce((acc, r) => acc + r.annualYield, 0);
+  // Computed KPIs from actual retrofits data
+  const allCapex       = retrofits.reduce((acc, r) => acc + r.capex, 0);
+  const allYield       = retrofits.reduce((acc, r) => acc + r.annualYield, 0);
+  const paybackYears   = allYield > 0 ? (allCapex / allYield).toFixed(1) : '—';
+  const roiPct         = allCapex > 0 ? Math.round(((allYield * 10 - allCapex) / allCapex) * 100) : 0;
+  // Carbon offset: ~0.82 kg CO2/kWh for Mumbai MSEDCL grid
+  const carbonOffset   = (allYield / 1000 * 0.82).toFixed(1);
+
+  // Export capital plan as CSV
+  const exportPlan = () => {
+    const rows = [
+      ['Retrofit', 'Category', 'CAPEX (INR)', 'Annual Yield (INR)', 'Payback', 'Selected'],
+      ...retrofits.map(r => [r.title, r.category, r.capex, r.annualYield, r.payback, r.selected ? 'Yes' : 'No']),
+    ];
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gridflex_capital_plan_f01.csv';
+    a.click();
+  };
 
   const filteredRetrofits = retrofits.filter((r) => {
     if (activeCategory === 'ALL') return true;
@@ -38,7 +60,7 @@ export function RetrofitsPage() {
           <span>/</span>
           <span>Buildings</span>
           <span>/</span>
-          <span>Delhi Tech Park</span>
+          <span>Dharavi North F01</span>
           <span>/</span>
           <span style={{ color: isLight ? '#0D472B' : '#F5F1E8', fontWeight: 600 }}>Retrofits</span>
         </div>
@@ -85,37 +107,36 @@ export function RetrofitsPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.82rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>
-            <span>Delhi Tech Park</span>
+            <span>Dharavi North — Feeder F01</span>
             <span>•</span>
-            <span>Commercial Workplace (5,000 m² GFA)</span>
+            <span>Community Residential Feeder (4,200 m² GFA)</span>
             <span>•</span>
-            <span style={{ color: '#059669' }}>ECBC Compliant Tier-1</span>
+            <span style={{ color: '#059669' }}>ECBC Compliant • MSEDCL Zone</span>
           </div>
         </div>
 
-        {/* Top Buttons */}
+        {/* Top Buttons — all functional */}
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
+            onClick={exportPlan}
+            title="Export capital plan as CSV"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              backgroundColor: isLight ? '#FFFFFF' : '#161616',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '10px 16px', backgroundColor: isLight ? '#FFFFFF' : '#161616',
               border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A',
-              borderRadius: '4px',
-              color: isLight ? '#0D472B' : '#F5F1E8',
-              fontFamily: 'Space Grotesk',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
+              borderRadius: '4px', color: isLight ? '#0D472B' : '#F5F1E8',
+              fontFamily: 'Space Grotesk', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
             }}
           >
-            <FileText size={15} />
-            <span>Executive Deck</span>
+            <Download size={15} />
+            <span>Export Plan (CSV)</span>
           </button>
 
-          <button className="btn-primary" style={{ padding: '10px 20px', backgroundColor: isLight ? '#0D472B' : '#D4841A', color: '#FFFFFF' }}>
+          <button
+            onClick={() => navigate('/simulation')}
+            title="Open simulation console to model grid peak scenario"
+            className="btn-primary"
+            style={{ padding: '10px 20px', backgroundColor: isLight ? '#0D472B' : '#D4841A', color: '#FFFFFF' }}>
             <Zap size={16} />
             <span>Simulate Grid Peak</span>
           </button>
@@ -140,10 +161,10 @@ export function RetrofitsPage() {
             <Wrench size={16} color={isLight ? '#0D472B' : '#D4841A'} />
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2rem', fontWeight: 700, color: isLight ? '#B45309' : '#E89B3C', lineHeight: 1 }}>
-            ₹2,500,000
+            ₹{allCapex.toLocaleString('en-IN')}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.75rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>
-            <span>8 Identified Retrofits</span>
+            <span>{retrofits.length} Identified Retrofits</span>
             <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Capex Est.</span>
           </div>
         </div>
@@ -157,11 +178,11 @@ export function RetrofitsPage() {
             <CheckCircle size={16} color="#059669" />
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2rem', fontWeight: 700, color: '#059669', lineHeight: 1 }}>
-            ₹500,000 <span style={{ fontSize: '0.9rem', color: '#059669' }}>/yr</span>
+            ₹{allYield.toLocaleString('en-IN')} <span style={{ fontSize: '0.9rem', color: '#059669' }}>/yr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.75rem', color: '#059669' }}>
-            <span>412 MWh Avoided</span>
-            <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>-22.4% Utility</span>
+            <span>{Math.round(allYield / 7.5)} kWh Avoided</span>
+            <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Estimated</span>
           </div>
         </div>
 
@@ -174,7 +195,7 @@ export function RetrofitsPage() {
             <TrendingUp size={16} color={isLight ? '#B45309' : '#E8A035'} />
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8', lineHeight: 1 }}>
-            5.0 <span style={{ fontSize: '1rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>years</span>
+            {paybackYears} <span style={{ fontSize: '1rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>years</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.75rem', color: isLight ? '#B45309' : '#E8A035' }}>
             <span>Target amort. threshold</span>
@@ -191,11 +212,11 @@ export function RetrofitsPage() {
             <TrendingUp size={16} color="#059669" />
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2rem', fontWeight: 700, color: '#059669', lineHeight: 1 }}>
-            220%
+            {roiPct}%
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.75rem', color: isLight ? '#5C6B61' : '#94A3B8' }}>
-            <span>NPV ₹3.2M (Discount 8%)</span>
-            <span style={{ color: '#059669', fontWeight: 600 }}>Grade AAA</span>
+            <span>{carbonOffset} tCO2e/yr offset</span>
+            <span style={{ color: '#059669', fontWeight: 600 }}>10-Year Return</span>
           </div>
         </div>
       </div>
@@ -389,13 +410,13 @@ export function RetrofitsPage() {
 
             {/* Bottom Actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: isLight ? '1px solid #E2E8DC' : '1px solid #1E1E1E' }}>
-              <button style={{ background: 'none', border: 'none', color: isLight ? '#0D472B' : '#E89B3C', fontFamily: 'Space Grotesk', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
-                View Simulation Telemetry →
+              <button onClick={() => navigate('/simulation')} title="Model this retrofit in simulation" style={{ background: 'none', border: 'none', color: isLight ? '#0D472B' : '#E89B3C', fontFamily: 'Space Grotesk', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
+                Simulate Impact →
               </button>
 
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button style={{ padding: '7px 14px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#5C6B61' : '#94A3B8', fontFamily: 'Space Grotesk', fontSize: '0.8rem', cursor: 'pointer' }}>
-                  Get EPC Quote
+                <button onClick={exportPlan} title="Export plan as CSV" style={{ padding: '7px 14px', backgroundColor: isLight ? '#FFFFFF' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#5C6B61' : '#94A3B8', fontFamily: 'Space Grotesk', fontSize: '0.8rem', cursor: 'pointer' }}>
+                  Export CSV
                 </button>
                 <button
                   onClick={() => toggleRetrofitSelection(r.id)}
@@ -447,7 +468,7 @@ export function RetrofitsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', marginBottom: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Selected Retrofits</span>
-            <span style={{ color: isLight ? '#0F172A' : '#F5F1E8', fontWeight: 600 }}>{selectedCount} of 8</span>
+            <span style={{ color: isLight ? '#0F172A' : '#F5F1E8', fontWeight: 600 }}>{selectedCount} of {retrofits.length}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Total Investment</span>
@@ -463,26 +484,42 @@ export function RetrofitsPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Blended Payback</span>
-            <span style={{ color: isLight ? '#0F172A' : '#F5F1E8', fontWeight: 600 }}>5.3 Years</span>
+            <span style={{ color: isLight ? '#0F172A' : '#F5F1E8', fontWeight: 600 }}>
+              {totalYield > 0 ? (totalCapex / totalYield).toFixed(1) : '—'} Years
+            </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Est. Carbon Offset</span>
-            <span style={{ color: '#059669' }}>41.6 tCO2e/yr</span>
+            <span style={{ color: '#059669' }}>{(totalYield / 1000 * 0.82).toFixed(1)} tCO2e/yr</span>
           </div>
         </div>
 
-        <button className="btn-primary" style={{ width: '100%', padding: '11px', fontSize: '0.88rem', marginBottom: '8px', backgroundColor: isLight ? '#0D472B' : '#D4841A', color: '#FFFFFF' }}>
-          <span>Create Capital Plan</span>
+        <button
+          onClick={exportPlan}
+          title="Download capital plan as CSV"
+          className="btn-primary"
+          style={{ width: '100%', padding: '11px', fontSize: '0.88rem', marginBottom: '8px', backgroundColor: isLight ? '#0D472B' : '#D4841A', color: '#FFFFFF' }}
+        >
+          <Download size={15} />
+          <span>Export Capital Plan (CSV)</span>
         </button>
 
-        <button style={{ width: '100%', padding: '8px', backgroundColor: isLight ? '#EAEFE3' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#5C6B61' : '#94A3B8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer', marginBottom: '8px' }}>
-          Export Feasibility Report
+        <button
+          onClick={() => navigate('/reliability')}
+          title="View reliability impact of selected retrofits"
+          style={{ width: '100%', padding: '8px', backgroundColor: isLight ? '#EAEFE3' : '#1E1E1E', border: isLight ? '1px solid #DAE2D2' : '1px solid #333', borderRadius: '4px', color: isLight ? '#5C6B61' : '#94A3B8', fontFamily: 'Space Grotesk', fontSize: '0.78rem', cursor: 'pointer', marginBottom: '8px' }}
+        >
+          View Reliability Impact
         </button>
 
         <div style={{ textAlign: 'center' }}>
-          <button style={{ background: 'none', border: 'none', color: isLight ? '#5C6B61' : '#64748B', fontFamily: 'Space Grotesk', fontSize: '0.72rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <button
+            onClick={() => retrofits.forEach(r => r.selected && toggleRetrofitSelection(r.id))}
+            title="Deselect all retrofits"
+            style={{ background: 'none', border: 'none', color: isLight ? '#5C6B61' : '#64748B', fontFamily: 'Space Grotesk', fontSize: '0.72rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          >
             <RotateCcw size={10} />
-            <span>Reset Active Configuration</span>
+            <span>Reset Selection</span>
           </button>
         </div>
       </div>

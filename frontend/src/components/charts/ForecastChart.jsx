@@ -1,17 +1,10 @@
 import React from 'react';
 import {
-  ResponsiveContainer,
-  ComposedChart,
-  Area,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ReferenceArea,
-  CartesianGrid
+  ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis,
+  Tooltip, Legend, ReferenceArea, CartesianGrid,
 } from 'recharts';
 import { useGridState } from '../../context/GridStateContext';
+import { useBuildingContext } from '../../context/BuildingContext';
 import { Zap } from 'lucide-react';
 
 function CustomTooltip({ active, payload, label }) {
@@ -24,8 +17,8 @@ function CustomTooltip({ active, payload, label }) {
         padding: '10px 14px',
         borderRadius: '6px',
         fontSize: '0.775rem',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        border: '1px solid #334155'
+        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+        border: '1px solid #334155',
       }}>
         <div style={{ fontWeight: 700, borderBottom: '1px solid #334155', paddingBottom: '4px', marginBottom: '6px', color: '#38BDF8' }}>
           TIME: {label} IST
@@ -54,8 +47,15 @@ function CustomTooltip({ active, payload, label }) {
 
 export function ForecastChart() {
   const { forecastData, isCloudEvent } = useGridState();
+  const { theme } = useBuildingContext();
+  const isLight = theme === 'light';
 
   const data = forecastData?.points || [];
+
+  const gridStroke = isLight ? '#E2E8F0' : '#242424';
+  const axisStroke = isLight ? '#64748B' : '#64748B';
+  const valCol     = isLight ? '#0F172A'  : '#F5F1E8';
+  const dimCol     = '#64748B';
 
   return (
     <div className="ops-panel" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -64,25 +64,19 @@ export function ForecastChart() {
           <span>24-Hour Energy Forecast</span>
           <span className="tech-tag tech-tag-blue">FORECAST · NEXT 24 HOURS</span>
         </div>
-        <div style={{ fontSize: '0.725rem', color: '#64748B' }}>
-          Model Gate: <strong style={{ color: '#0F172A' }}>{forecastData?.forecast_confidence_pct || 89}% Confidence</strong>
+        <div style={{ fontSize: '0.725rem', color: dimCol }}>
+          Model Gate: <strong style={{ color: valCol }}>{forecastData?.forecast_confidence_pct || 89}% Confidence</strong>
         </div>
       </div>
 
       <div className="ops-panel-body" style={{ flex: 1, minHeight: '320px', position: 'relative' }}>
         {isCloudEvent && (
           <div style={{
-            position: 'absolute',
-            top: '14px',
-            right: '24px',
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #FDE68A',
-            borderRadius: '4px',
-            padding: '4px 10px',
-            fontSize: '0.725rem',
-            fontWeight: 600,
-            color: '#B45309',
-            zIndex: 10
+            position: 'absolute', top: '14px', right: '24px', zIndex: 10,
+            backgroundColor: isLight ? '#FEF3C7' : 'rgba(217,119,6,0.15)',
+            border: isLight ? '1px solid #FDE68A' : '1px solid rgba(217,119,6,0.4)',
+            borderRadius: '4px', padding: '4px 10px',
+            fontSize: '0.725rem', fontWeight: 600, color: '#B45309',
           }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <Zap size={13} color="#B45309" /> Cloud Window Highlighted (15:00 - 17:30)
@@ -92,9 +86,9 @@ export function ForecastChart() {
 
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-            <XAxis dataKey="time" stroke="#64748B" fontSize={11} tickLine={false} />
-            <YAxis stroke="#64748B" fontSize={11} tickLine={false} unit=" kW" domain={[0, 200]} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+            <XAxis dataKey="time" stroke={axisStroke} fontSize={11} tickLine={false} tick={{ fill: axisStroke }} />
+            <YAxis stroke={axisStroke} fontSize={11} tickLine={false} unit=" kW" domain={[0, 200]} tick={{ fill: axisStroke }} />
             <Tooltip content={<CustomTooltip />} />
             <Legend
               wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }}
