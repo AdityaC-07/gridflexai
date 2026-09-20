@@ -1,0 +1,60 @@
+{
+  "family": "gridflex-backend",
+  "taskRoleArn": "arn:aws:iam::804012660016:role/gridflex-task-role",
+  "executionRoleArn": "arn:aws:iam::804012660016:role/gridflex-ecs-execution-role",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "804012660016.dkr.ecr.ap-south-1.amazonaws.com/gridflex-backend:latest",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "APP_MODE",
+          "value": "aws"
+        },
+        {
+          "name": "BEDROCK_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "ap-south-1"
+        },
+        {
+          "name": "DYNAMODB_TABLE_PREFIX",
+          "value": "gridflex"
+        },
+        {
+          "name": "BEDROCK_MODEL_ID",
+          "value": "apac.amazon.nova-lite-v1:0"
+        },
+        {
+          "name": "FEEDER_ID",
+          "value": "F01"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/gridflex-backend",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}

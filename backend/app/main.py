@@ -129,8 +129,8 @@ _ALLOWED_ORIGINS = [
     "http://localhost:8000",   # same-origin hits
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
-    # Production origins — add your domain here when deploying
-    # "https://app.gridflex.ai",
+    # Production origins
+    "https://d3pi56i3w5vugt.cloudfront.net",
 ]
 
 app.add_middleware(

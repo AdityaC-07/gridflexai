@@ -28,10 +28,7 @@ def _bedrock_reachable() -> bool:
         import boto3
         session = boto3.session.Session()
         creds = session.get_credentials()
-        if creds is None:
-            return False
-        resolved = creds.resolve_credentials()
-        return resolved is not None
+        return bool(creds and creds.access_key)
     except Exception:
         return False
 
@@ -51,7 +48,7 @@ def bedrock_client():
 
 @pytest.fixture(scope="module")
 def model_id():
-    return os.getenv("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
+    return os.getenv("BEDROCK_MODEL_ID", "apac.amazon.nova-lite-v1:0")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -193,12 +190,16 @@ def test_tool_use_round_trip(model_id):
 def test_full_copilot_query_pipeline():
     """Run a complete Copilot query with real Bedrock and real GridFlex tools."""
     import os
+    from importlib import reload
+    old_enabled = os.environ.get("BEDROCK_ENABLED")
     os.environ["BEDROCK_ENABLED"] = "true"
 
-    # Re-init config to pick up env change
-    from importlib import reload
     import app.config as cfg_mod
     reload(cfg_mod)
+    import app.agents.gridflex_copilot.bedrock as bedrock_mod
+    reload(bedrock_mod)
+    import app.agents.gridflex_copilot.agent as agent_mod
+    reload(agent_mod)
 
     from app.agents.gridflex_copilot.schemas import CopilotQueryRequest
     from app.agents.gridflex_copilot.agent import run_copilot_query
@@ -208,23 +209,29 @@ def test_full_copilot_query_pipeline():
         feeder_id="F01",
     )
 
-    t0 = time.monotonic()
-    result = run_copilot_query(req)
-    latency = round((time.monotonic() - t0) * 1000, 1)
+    try:
+        t0 = time.monotonic()
+        result = run_copilot_query(req)
+        latency = round((time.monotonic() - t0) * 1000, 1)
 
-    print(f"\n[Integration] === Full Pipeline Result ===")
-    print(f"  Model:     {result.model}")
-    print(f"  Provider:  {result.provider}")
-    print(f"  Mode:      {result.mode}")
-    print(f"  Tools:     {[t.tool_name for t in result.tools_used]}")
-    print(f"  Sources:   {result.sources}")
-    print(f"  Latency:   {latency} ms")
-    print(f"  Answer:    {result.answer[:300]!r}")
+        print(f"\n[Integration] === Full Pipeline Result ===")
+        print(f"  Model:     {result.model}")
+        print(f"  Provider:  {result.provider}")
+        print(f"  Mode:      {result.mode}")
+        print(f"  Tools:     {[t.tool_name for t in result.tools_used]}")
+        print(f"  Sources:   {result.sources}")
+        print(f"  Latency:   {latency} ms")
+        print(f"  Answer:    {result.answer[:300]!r}")
 
-    assert isinstance(result.answer, str) and len(result.answer) > 10
-    assert result.model
-    assert result.provider == "Amazon Bedrock"
-    assert result.mode in ("live", "fallback")
-
-    # Reset env
-    os.environ["BEDROCK_ENABLED"] = "false"
+        assert isinstance(result.answer, str) and len(result.answer) > 10
+        assert result.model
+        assert result.provider == "Amazon Bedrock"
+        assert result.mode in ("live", "fallback")
+    finally:
+        if old_enabled is not None:
+            os.environ["BEDROCK_ENABLED"] = old_enabled
+        else:
+            os.environ.pop("BEDROCK_ENABLED", None)
+        reload(cfg_mod)
+        reload(bedrock_mod)
+        reload(agent_mod)

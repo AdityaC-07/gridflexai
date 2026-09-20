@@ -98,10 +98,7 @@ def credentials_available() -> bool:
         import boto3 as b3
         session = b3.session.Session()
         creds = session.get_credentials()
-        if creds is None:
-            return False
-        resolved = creds.resolve_credentials()
-        return resolved is not None
+        return bool(creds and creds.access_key)
     except Exception:
         return False
 
