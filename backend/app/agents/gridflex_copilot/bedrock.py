@@ -257,16 +257,15 @@ def stop_reason(response: dict[str, Any]) -> str:
     return response.get("stopReason", "end_turn")
 
 
-def build_tool_result_message(
+def build_tool_result_block(
     tool_use_id: str,
     result: Any,
     is_error: bool = False,
 ) -> dict[str, Any]:
-    """Build a user-role message containing a toolResult block.
+    """Build a single toolResult block dict for inclusion in a user message.
 
     The Converse API expects:
-      role: "user"
-      content: [{ "toolResult": { "toolUseId": ..., "content": [...] } }]
+      { "toolResult": { "toolUseId": ..., "content": [...], "status": ... } }
     """
     if is_error:
         content_blocks = [{"text": f"ERROR: {result}"}]
@@ -279,30 +278,43 @@ def build_tool_result_message(
         status = "success"
 
     return {
+        "toolResult": {
+            "toolUseId": tool_use_id,
+            "content": content_blocks,
+            "status": status,
+        }
+    }
+
+
+def build_tool_result_message(
+    tool_use_id: str,
+    result: Any,
+    is_error: bool = False,
+) -> dict[str, Any]:
+    """Build a user-role message containing a single toolResult block.
+
+    The Converse API expects:
+      role: "user"
+      content: [{ "toolResult": { "toolUseId": ..., "content": [...] } }]
+    """
+    return {
         "role": "user",
-        "content": [
-            {
-                "toolResult": {
-                    "toolUseId": tool_use_id,
-                    "content": content_blocks,
-                    "status": status,
-                }
-            }
-        ],
+        "content": [build_tool_result_block(tool_use_id, result, is_error=is_error)],
     }
 
 
 def build_assistant_tool_use_message(
     response: dict[str, Any],
 ) -> dict[str, Any]:
-    """Re-package the assistant's Converse response as a history message.
+    """Return the assistant message exactly as returned by Converse.
 
     The Converse multi-turn pattern requires the assistant's toolUse message
     to be appended to the conversation history before adding the toolResult.
+    Preserving the complete message is important when a response contains
+    multiple content blocks or provider-specific message fields.
     """
     output = response.get("output", {})
     message = output.get("message", {})
-    return {
-        "role": "assistant",
-        "content": message.get("content", []),
-    }
+    if not message or not message.get("content"):
+        raise ValueError("Bedrock tool-use response contained an empty assistant message")
+    return dict(message)

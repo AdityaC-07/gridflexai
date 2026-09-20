@@ -43,6 +43,7 @@ from app.agents.gridflex_copilot.bedrock import (
     extract_tool_uses,
     stop_reason,
     build_tool_result_message,
+    build_tool_result_block,
     build_assistant_tool_use_message,
 )
 from app.agents.gridflex_copilot.permissions import (
@@ -177,8 +178,10 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
             # Append assistant's tool-use message to conversation history
             messages.append(build_assistant_tool_use_message(response))
 
-            # Execute each tool call in this round
+            # Execute each tool call in this round and collect toolResult blocks
             tool_uses = extract_tool_uses(response)
+            tool_result_blocks: list[dict] = []
+
             for tu in tool_uses:
                 tool_name    = tu["name"]
                 tool_use_id  = tu["toolUseId"]
@@ -189,9 +192,8 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
                     check_tool_permitted(tool_name)
                 except CopilotPermissionError as perm_err:
                     logger.error("Permission denied for tool '%s': %s", tool_name, perm_err)
-                    # Return a security-blocked tool result to Bedrock
-                    messages.append(
-                        build_tool_result_message(
+                    tool_result_blocks.append(
+                        build_tool_result_block(
                             tool_use_id,
                             f"PERMISSION DENIED: {perm_err}",
                             is_error=True,
@@ -232,15 +234,15 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
                         result_summary=result_summary,
                     ))
 
-                    messages.append(
-                        build_tool_result_message(tool_use_id, result, is_error=False)
+                    tool_result_blocks.append(
+                        build_tool_result_block(tool_use_id, result, is_error=False)
                     )
                     logger.debug("Tool '%s' result summary: %s", tool_name, result_summary)
 
                 except Exception as exc:
                     logger.error("Tool '%s' execution error: %s", tool_name, exc)
-                    messages.append(
-                        build_tool_result_message(
+                    tool_result_blocks.append(
+                        build_tool_result_block(
                             tool_use_id,
                             f"Tool execution failed: {exc}",
                             is_error=True,
@@ -252,6 +254,13 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
                         input_args=tool_input,
                         result_summary=f"ERROR: {exc}",
                     ))
+
+            # Append single user message containing ALL toolResult blocks for this round
+            if tool_result_blocks:
+                messages.append({
+                    "role": "user",
+                    "content": tool_result_blocks,
+                })
 
         else:
             # Unexpected stop reason — end gracefully

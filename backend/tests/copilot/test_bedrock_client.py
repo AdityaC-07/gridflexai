@@ -226,7 +226,12 @@ def test_build_assistant_tool_use_message():
     resp = _make_tool_use_response("get_forecast", "tu-xyz", {})
     msg = build_assistant_tool_use_message(resp)
     assert msg["role"] == "assistant"
-    assert any("toolUse" in block for block in msg["content"])
+    assert msg == resp["output"]["message"]
+
+
+def test_build_assistant_tool_use_message_rejects_empty_content():
+    with pytest.raises(ValueError, match="empty assistant message"):
+        build_assistant_tool_use_message({"output": {"message": {"role": "assistant", "content": []}}})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
