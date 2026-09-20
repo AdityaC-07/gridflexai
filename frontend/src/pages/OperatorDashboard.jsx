@@ -9,6 +9,7 @@ import { AlertBanner } from '../components/alerts/AlertBanner';
 import { ReliabilityEventCard } from '../components/cards/ReliabilityEventCard';
 import { FlexibilityPoolPanel } from '../components/cards/FlexibilityPoolPanel';
 import { FeederDigitalTwin } from '../components/cards/FeederDigitalTwin';
+import { CopilotPanel } from '../components/copilot/CopilotPanel';
 import { useGridState } from '../context/GridStateContext';
 import { useBuildingContext } from '../context/BuildingContext';
 
@@ -154,6 +155,11 @@ export function OperatorDashboard() {
           </div>
         </div>
       )}
+
+      {/* GridFlex Reliability Copilot — Amazon Bedrock AI layer */}
+      <div style={{ marginBottom: '24px' }}>
+        <CopilotPanel feederId="F01" />
+      </div>
 
       {/* Operational Metadata Strip */}
       <div style={{

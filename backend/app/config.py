@@ -71,6 +71,38 @@ class AppConfig:
         default_factory=lambda: os.getenv("SNS_ENABLED", "false").lower() == "true"
     )
 
+    # ── Amazon Bedrock (Copilot AI layer) ─────────────────────────────────────
+    # BEDROCK_ENABLED=false  → Copilot returns deterministic fallback; no Bedrock call.
+    # BEDROCK_ENABLED=true   → Full Converse API agentic loop with real LLM inference.
+    #
+    # Default model: amazon.nova-lite-v1:0
+    #   • Supports tool use via Converse API
+    #   • Available in ap-south-1
+    #   • Lowest latency / cost for interactive Q&A
+    #   • Change to anthropic.claude-3-haiku-20240307-v1:0 or
+    #     us.amazon.nova-pro-v1:0 (cross-region) for higher capability
+    bedrock_enabled: bool = field(
+        default_factory=lambda: os.getenv("BEDROCK_ENABLED", "false").lower() == "true"
+    )
+    bedrock_model_id: str = field(
+        default_factory=lambda: os.getenv(
+            "BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0"
+        )
+    )
+    bedrock_max_tokens: int = field(
+        default_factory=lambda: _int("BEDROCK_MAX_TOKENS", 1000)
+    )
+    bedrock_temperature: float = field(
+        default_factory=lambda: _float("BEDROCK_TEMPERATURE", 0.2)
+    )
+    # Optional guardrail integration
+    bedrock_guardrail_id: str = field(
+        default_factory=lambda: os.getenv("BEDROCK_GUARDRAIL_ID", "")
+    )
+    bedrock_guardrail_version: str = field(
+        default_factory=lambda: os.getenv("BEDROCK_GUARDRAIL_VERSION", "")
+    )
+
     @property
     def is_local(self) -> bool:
         return self.app_mode == "local"
@@ -78,6 +110,10 @@ class AppConfig:
     @property
     def is_aws(self) -> bool:
         return self.app_mode == "aws"
+
+    @property
+    def bedrock_guardrail_configured(self) -> bool:
+        return bool(self.bedrock_guardrail_id and self.bedrock_guardrail_version)
 
 
 # Singleton used throughout the unified app
