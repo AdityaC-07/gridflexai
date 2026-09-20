@@ -307,10 +307,82 @@ export function LandingPage() {
               <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.72rem', color: '#E89B3C', marginBottom: '16px' }}>
                 Live Dispatch: 1,614 kW (-256 kW below cap)
               </div>
-              <div style={{ height: '200px', backgroundColor: '#161616', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #333' }}>
-                <span style={{ fontFamily: 'JetBrains Mono', color: '#38BDF8', fontSize: '0.85rem' }}>
-                  [Interactive Recharts Live Telemetry Curve]
-                </span>
+              {/* Live telemetry SVG chart */}
+              <div style={{ height: '200px', backgroundColor: '#161616', borderRadius: '4px', border: '1px solid #222', position: 'relative', overflow: 'hidden' }}>
+                <svg width="100%" height="100%" viewBox="0 0 600 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Grid lines */}
+                  {[40,80,120,160].map(y => (
+                    <line key={y} x1="0" y1={y} x2="600" y2={y} stroke="#1E2A38" strokeWidth="1" strokeDasharray="4 4" />
+                  ))}
+                  {[100,200,300,400,500].map(x => (
+                    <line key={x} x1={x} y1="0" x2={x} y2="200" stroke="#1A2332" strokeWidth="1" />
+                  ))}
+
+                  {/* Predictive ceiling — flat amber dashed line */}
+                  <line x1="0" y1="55" x2="600" y2="55" stroke="#D97706" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.7" />
+                  <text x="8" y="50" fontFamily="monospace" fontSize="9" fill="#D97706" opacity="0.9">CAP 1,870 kW</text>
+
+                  {/* Demand area fill */}
+                  <defs>
+                    <linearGradient id="demandGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0284C7" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#0284C7" stopOpacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="solarGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#D97706" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#D97706" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Demand area */}
+                  <path
+                    d="M0,130 C30,120 60,110 100,95 C140,80 160,75 200,80 C240,85 260,100 300,88 C340,76 370,68 410,72 C450,76 480,82 520,78 C550,75 575,70 600,68 L600,200 L0,200 Z"
+                    fill="url(#demandGrad)"
+                  />
+                  {/* Demand line */}
+                  <path
+                    d="M0,130 C30,120 60,110 100,95 C140,80 160,75 200,80 C240,85 260,100 300,88 C340,76 370,68 410,72 C450,76 480,82 520,78 C550,75 575,70 600,68"
+                    fill="none" stroke="#38BDF8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  />
+
+                  {/* Solar area */}
+                  <path
+                    d="M0,185 C40,175 80,160 120,140 C160,120 190,105 230,92 C270,79 300,78 340,82 C380,86 410,100 450,115 C490,130 530,155 600,170 L600,200 L0,200 Z"
+                    fill="url(#solarGrad)"
+                  />
+                  {/* Solar line */}
+                  <path
+                    d="M0,185 C40,175 80,160 120,140 C160,120 190,105 230,92 C270,79 300,78 340,82 C380,86 410,100 450,115 C490,130 530,155 600,170"
+                    fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  />
+
+                  {/* Live cursor dot on demand line */}
+                  <circle cx="520" cy="78" r="4" fill="#38BDF8" />
+                  <circle cx="520" cy="78" r="8" fill="none" stroke="#38BDF8" strokeWidth="1" opacity="0.4">
+                    <animate attributeName="r" values="6;14;6" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite" />
+                  </circle>
+
+                  {/* Tick labels — x axis */}
+                  {[
+                    [0,'14:00'],[100,'15:00'],[200,'16:00'],[300,'17:00'],[400,'18:00'],[500,'19:00'],
+                  ].map(([x, t]) => (
+                    <text key={t} x={x+4} y="196" fontFamily="monospace" fontSize="8" fill="#475569">{t}</text>
+                  ))}
+
+                  {/* Y-axis labels */}
+                  {[
+                    [55,'1,870'],[88,'1,614'],[130,'1,200'],[160,'900'],
+                  ].map(([y, v]) => (
+                    <text key={v} x="4" y={y-3} fontFamily="monospace" fontSize="8" fill="#334155">{v}</text>
+                  ))}
+
+                  {/* Legend */}
+                  <rect x="420" y="8" width="10" height="3" fill="#38BDF8" rx="1" />
+                  <text x="434" y="14" fontFamily="monospace" fontSize="8" fill="#94A3B8">Demand (kW)</text>
+                  <rect x="420" y="20" width="10" height="3" fill="#D97706" rx="1" />
+                  <text x="434" y="26" fontFamily="monospace" fontSize="8" fill="#94A3B8">Solar (kW)</text>
+                </svg>
               </div>
             </div>
 

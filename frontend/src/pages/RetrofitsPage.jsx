@@ -10,6 +10,8 @@ import {
   FileText,
   RotateCcw,
   Download,
+  ChevronDown,
+  Plus,
 } from 'lucide-react';
 
 export function RetrofitsPage() {

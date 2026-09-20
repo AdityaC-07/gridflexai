@@ -17,12 +17,12 @@ import { useBuildingContext } from '../../context/BuildingContext';
 import { useGridState } from '../../context/GridStateContext';
 
 const PRESET_QUESTIONS = [
-  { label: 'Why is the grid under stress?', icon: '⚡' },
-  { label: 'Why did the current reliability event trigger?', icon: '🔴' },
-  { label: 'Where can we get another 30 kW of flexibility?', icon: '🔋' },
-  { label: 'What happens if solar output falls another 20%?', icon: '☁️' },
-  { label: 'Why did GridFlex choose these resources?', icon: '📊' },
-  { label: 'Are any critical loads exposed?', icon: '🏥' },
+  { label: 'Why is the grid under stress?' },
+  { label: 'Why did the current reliability event trigger?' },
+  { label: 'Where can we get another 30 kW of flexibility?' },
+  { label: 'What happens if solar output falls another 20%?' },
+  { label: 'Why did GridFlex choose these resources?' },
+  { label: 'Are any critical loads exposed?' },
 ];
 
 async function queryBedrock(message, feederId, eventId) {
@@ -341,7 +341,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
           QUICK QUESTIONS:
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-          {PRESET_QUESTIONS.map(({ label, icon }) => (
+          {PRESET_QUESTIONS.map(({ label }) => (
             <button
               key={label}
               onClick={() => submit(label)}
@@ -358,7 +358,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {icon} {label.split(' ').slice(0, 4).join(' ')}…
+              {label.split(' ').slice(0, 5).join(' ')}…
             </button>
           ))}
         </div>
