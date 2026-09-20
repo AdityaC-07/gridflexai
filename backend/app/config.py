@@ -86,7 +86,7 @@ class AppConfig:
     )
     bedrock_model_id: str = field(
         default_factory=lambda: os.getenv(
-            "BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0"
+            "BEDROCK_MODEL_ID", "apac.amazon.nova-lite-v1:0"
         )
     )
     bedrock_max_tokens: int = field(
