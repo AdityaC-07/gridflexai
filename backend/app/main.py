@@ -71,6 +71,12 @@ from app.api import (
     flexibility,
     copilot,
     simulation,
+    buildings,
+    retrofits,
+    equipment,
+    grid_hackathon,
+    sim_hackathon,
+    buildings_extra,
 )
 
 logging.basicConfig(
@@ -152,6 +158,12 @@ app.include_router(reliability.router, prefix=PREFIX)
 app.include_router(events.router, prefix=PREFIX)
 app.include_router(flexibility.router, prefix=PREFIX)
 app.include_router(copilot.router, prefix=PREFIX)
+
+app.include_router(buildings.router, prefix=PREFIX)
+app.include_router(retrofits.router, prefix=PREFIX)
+app.include_router(equipment.router, prefix=PREFIX)
+app.include_router(grid_hackathon.router, prefix=PREFIX)
+app.include_router(buildings_extra.router, prefix=PREFIX)
 
 # Simulation endpoints use legacy unversioned paths (/simulation/*)
 # to preserve the existing frontend contract.
