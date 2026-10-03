@@ -1,6 +1,6 @@
 # GridFlex AI — Engineering Reference
 
-> **Last updated:** Sprint 4 — Amazon Bedrock Copilot AI Layer  
+> **Last updated:** Groq migration — Copilot AI layer runs on Groq (`openai/gpt-oss-120b`)  
 > This document reflects the cumulative state of all implemented work.  
 > It is the authoritative reference for any developer picking up this codebase.
 
@@ -15,7 +15,7 @@
 5. [Environment Variables](#5-environment-variables)
 6. [All API Routes](#6-all-api-routes)
 7. [Frontend](#7-frontend)
-8. [Amazon Bedrock Copilot AI Layer](#8-amazon-bedrock-copilot-ai-layer)
+8. [Groq Copilot AI Layer](#8-groq-copilot-ai-layer)
 9. [Data & Storage](#9-data--storage)
 10. [Test Suite](#10-test-suite)
 11. [Production AWS Architecture](#11-production-aws-architecture)
@@ -54,18 +54,13 @@ npm run dev
 
 The Vite dev server proxies `/api/*` and `/simulation/*` to `localhost:8000` — no CORS issues.
 
-### To enable the Bedrock Copilot
+### To enable the Groq Copilot
 
 ```bash
 # In backend/.env:
-BEDROCK_ENABLED=true
-BEDROCK_MODEL_ID=amazon.nova-lite-v1:0
-AWS_REGION=ap-south-1
-
-# Plus AWS credentials via one of:
-#   export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
-#   aws configure
-#   IAM role (ECS/EC2 in production — no env vars needed)
+GROQ_ENABLED=true
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_API_KEY=gsk_...        # from https://console.groq.com/keys
 ```
 
 ---
@@ -77,7 +72,7 @@ gridflexai/
 ├── backend/
 │   ├── app/                          ← Unified FastAPI application (Sprint 1)
 │   │   ├── main.py                   ← Single entrypoint: uvicorn app.main:app
-│   │   ├── config.py                 ← All config (APP_MODE, Bedrock, grid params)
+│   │   ├── config.py                 ← All config (APP_MODE, Groq, grid params)
 │   │   ├── core/
 │   │   │   ├── store.py              ← Storage abstraction: local dict ↔ DynamoDB
 │   │   │   └── local_dynamo_patch.py ← Monkey-patches shared.dynamo in local mode
@@ -99,11 +94,11 @@ gridflexai/
 │   │   │   ├── flexibility/
 │   │   │   └── event_detection/
 │   │   └── agents/
-│   │       └── gridflex_copilot/     ← Amazon Bedrock AI layer (Sprint 4)
+│   │       └── gridflex_copilot/     ← Groq AI layer
 │   │           ├── __init__.py
-│   │           ├── agent.py          ← Converse agentic loop
-│   │           ├── bedrock.py        ← boto3 Bedrock Runtime client
-│   │           ├── prompts.py        ← System prompt + 10 Converse tool specs
+│   │           ├── agent.py          ← LLM agentic loop
+│   │           ├── llm.py            ← Groq client + OpenAI ⇄ Converse adapter
+│   │           ├── prompts.py        ← System prompt + 10 tool specs
 │   │           ├── tools.py          ← 10 real GridFlex tool implementations
 │   │           ├── permissions.py    ← Allowlist/denylist security layer
 │   │           └── schemas.py        ← Pydantic request/response models
@@ -125,10 +120,10 @@ gridflexai/
 │   │   ├── test_solar_model.py
 │   │   ├── test_reliability_event_schema.py
 │   │   └── copilot/
-│   │       ├── test_permissions.py          ← 22 permission security tests
-│   │       ├── test_bedrock_client.py       ← 22 mocked Bedrock client tests
-│   │       ├── test_agent_loop.py           ← 7 mocked agent loop tests
-│   │       └── test_bedrock_integration.py  ← 5 real Bedrock smoke tests
+│   │       ├── test_permissions.py          ← 37 permission security tests
+│   │       ├── test_groq_client.py          ← mocked Groq client + adapter tests
+│   │       ├── test_agent_loop.py           ← 8 mocked agent loop tests
+│   │       └── test_groq_integration.py     ← 5 real Groq smoke tests (skip w/o key)
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -152,7 +147,7 @@ gridflexai/
 │   │   │   └── ResidentView.jsx
 │   │   └── components/
 │   │       ├── copilot/
-│   │       │   └── CopilotPanel.jsx      ← Amazon Bedrock UI (Sprint 4)
+│   │       │   └── CopilotPanel.jsx      ← Groq Copilot UI
 │   │       ├── cards/
 │   │       ├── charts/
 │   │       ├── layout/
@@ -180,10 +175,10 @@ app/core/store.py  ← in-memory Python dicts (no DynamoDB)
     ↓
 existing service modules (forecast_service/, grid_intelligence/, etc.)
     ↓
-GridFlex Copilot (BEDROCK_ENABLED=true)
+GridFlex Copilot (GROQ_ENABLED=true + GROQ_API_KEY)
     ↓
-Amazon Bedrock Converse API (ap-south-1)
-    ↓  toolUse / toolResult loop
+Groq API — openai/gpt-oss-120b (OpenAI-compatible)
+    ↓  toolCall / tool result loop
 10 read-only GridFlex tools
 ```
 
@@ -256,7 +251,7 @@ Add production domain to `_ALLOWED_ORIGINS` in `app/main.py` when deploying.
 | Variable | Default | Notes |
 |---|---|---|
 | `APP_MODE` | `local` | `local` or `aws` |
-| `AWS_REGION` | `ap-south-1` | Used by DynamoDB + Bedrock |
+| `AWS_REGION` | `ap-south-1` | Used by DynamoDB |
 | `AWS_ENDPOINT_URL` | `` | Set to LocalStack URL for local DynamoDB |
 | `DYNAMODB_TABLE_PREFIX` | `gridflex` | Prefix for all table names |
 | `FEEDER_ID` | `F01` | Default feeder |
@@ -269,20 +264,19 @@ Add production domain to `_ALLOWED_ORIGINS` in `app/main.py` when deploying.
 | `PEAK_SOLAR_KW` | `150` | kW peak capacity |
 | `SNS_ENABLED` | `false` | Enable SNS alerts |
 | `SNS_TOPIC_ARN` | `` | ARN of SNS topic |
-| `BEDROCK_ENABLED` | `false` | `true` to activate AI Copilot |
-| `BEDROCK_MODEL_ID` | `amazon.nova-lite-v1:0` | See model guide below |
-| `BEDROCK_MAX_TOKENS` | `1000` | Max tokens per response |
-| `BEDROCK_TEMPERATURE` | `0.2` | 0.0 = deterministic, 1.0 = creative |
-| `BEDROCK_GUARDRAIL_ID` | `` | Optional Bedrock Guardrail ID |
-| `BEDROCK_GUARDRAIL_VERSION` | `` | Optional Guardrail version |
+| `GROQ_ENABLED` | `true` | `true` to activate AI Copilot |
+| `GROQ_API_KEY` | `` | Groq API key (required for live mode) |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | See model guide below |
+| `GROQ_MAX_TOKENS` | `1024` | Max tokens per response |
+| `GROQ_TEMPERATURE` | `0.5` | 0.0 = deterministic, 1.0 = creative |
 
-**Bedrock model guide (ap-south-1):**
+**Groq model guide:**
 
-| Model ID | Speed | Cost | Notes |
-|---|---|---|---|
-| `amazon.nova-lite-v1:0` | Fast | Low | **Default** — tool use, good for Q&A |
-| `amazon.nova-pro-v1:0` | Medium | Medium | Higher capability |
-| `anthropic.claude-3-haiku-20240307-v1:0` | Fast | Low | Claude Haiku, if enabled in account |
+| Model ID | Speed | Notes |
+|---|---|---|
+| `openai/gpt-oss-120b` | Very fast (~500 tok/s) | **Default** — tool use + JSON mode, 131k context |
+| `qwen/qwen3.8-27b` | Fast | Parallel tool use (preview) |
+| `openai/gpt-oss-20b` | Very fast | Smaller/faster variant |
 
 ### Frontend (`frontend/.env`)
 
@@ -323,8 +317,8 @@ Add production domain to `_ALLOWED_ORIGINS` in `app/main.py` when deploying.
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/v1/copilot/query` | Submit question to Bedrock Copilot (primary endpoint) |
-| `GET` | `/api/v1/copilot/status` | Bedrock availability + config (no credentials exposed) |
+| `POST` | `/api/v1/copilot/query` | Submit question to Groq Copilot (primary endpoint) |
+| `GET` | `/api/v1/copilot/status` | Groq availability + config (no credentials exposed) |
 | `POST` | `/api/v1/copilot/ask` | Legacy endpoint (backward-compatible, delegates to /query) |
 
 ### Simulation (legacy unversioned paths)
@@ -387,11 +381,11 @@ Every visible button in the application has a functional handler:
 
 ---
 
-## 8. Amazon Bedrock Copilot AI Layer
+## 8. Groq Copilot AI Layer
 
 ### Overview
 
-The GridFlex Reliability Copilot is a **constrained, read-only AI reasoning layer** that sits above the deterministic GridFlex services. It uses Amazon Bedrock's Converse API with tool use to gather live data and generate grounded natural-language answers.
+The GridFlex Reliability Copilot is a **constrained, read-only AI reasoning layer** that sits above the deterministic GridFlex services. It uses the Groq API (OpenAI-compatible chat completions) with tool use to gather live data and generate grounded natural-language answers.
 
 ```
 User question
@@ -400,16 +394,18 @@ POST /api/v1/copilot/query          (api/copilot.py)
     ↓
 run_copilot_query()                 (agent.py)
     ↓
-Amazon Bedrock Converse API         (bedrock.py)
-    ↓  toolUse request
+Groq API — openai/gpt-oss-120b      (llm.py)
+    ↓  toolCall request
 Permission check                    (permissions.py)  ← security gate
     ↓  ALLOWED only
 Tool execution                      (tools.py)        ← reads existing services
-    ↓  toolResult
-Amazon Bedrock Converse API         (bedrock.py)      ← continues conversation
+    ↓  tool result
+Groq API                            (llm.py)          ← continues conversation
     ↓  end_turn
 CopilotQueryResponse                (schemas.py)      ← answer + metadata
 ```
+
+`llm.py` keeps the old Converse-style internal contract (content blocks `text` / `toolUse` / `toolResult`) and translates to/from OpenAI format internally — the agent loop, tools, and permission layer are unchanged.
 
 ### The 10 Copilot tools
 
@@ -444,18 +440,14 @@ All tools are **read-only** or **simulate-only** (in-memory, not persisted):
 
 ### Graceful degradation
 
-When `BEDROCK_ENABLED=false` or AWS credentials are unavailable, the Copilot returns a **deterministic answer** from live GridFlex data — it never fabricates an AI response. The response is clearly labelled `"mode": "fallback"` and the `provider` field reads `"Amazon Bedrock (unavailable — deterministic fallback)"`.
-
-### Bedrock Guardrails (optional)
-
-Set `BEDROCK_GUARDRAIL_ID` and `BEDROCK_GUARDRAIL_VERSION` in `.env` to attach a Bedrock Guardrail to every Converse call. Not required for local development.
+When `GROQ_ENABLED=false` or no `GROQ_API_KEY` is set (or the API is unreachable), the Copilot returns a **deterministic answer** from live GridFlex data — it never fabricates an AI response. The response is clearly labelled `"mode": "fallback"` and the `provider` field reads `"Groq (unavailable — deterministic fallback)"`.
 
 ### Frontend Copilot panel
 
 `CopilotPanel.jsx` is mounted at the bottom of the Operator Dashboard (`/operator`):
 
-- Header shows `GRIDFLEX RELIABILITY COPILOT` · `Powered by Amazon Bedrock`
-- Live mode indicator: `LIVE — Bedrock AI` (green) or `FALLBACK — Deterministic` (amber)
+- Header shows `GRIDFLEX RELIABILITY COPILOT` · `Powered by Groq`
+- Live mode indicator: `LIVE — Groq AI` (green) or `FALLBACK — Deterministic` (amber)
 - Model ID and region shown in status strip
 - Response tagged with `✦ AI RESPONSE`, `DETERMINISTIC DATA`, or `SIMULATION` badge
 - Collapsible list of tools invoked per query
@@ -463,7 +455,7 @@ Set `BEDROCK_GUARDRAIL_ID` and `BEDROCK_GUARDRAIL_VERSION` in `.env` to attach a
 - Latency in milliseconds
 - 6 preset quick-question buttons
 - Loading state: "GRIDFLEX IS REASONING OVER LIVE GRID DATA…"
-- Error state: "Bedrock is unavailable. All deterministic GridFlex services remain fully operational."
+- Error state: "Groq is unavailable. All deterministic GridFlex services remain fully operational."
 
 ### API contracts
 
@@ -483,8 +475,8 @@ Response:
 ```json
 {
   "answer": "Feeder F01 is at MEDIUM risk (stress index 25/100)...",
-  "model": "amazon.nova-lite-v1:0",
-  "provider": "Amazon Bedrock",
+  "model": "openai/gpt-oss-120b",
+  "provider": "Groq",
   "tools_used": [
     {
       "tool_name": "get_current_grid_state",
@@ -508,11 +500,10 @@ Response:
 ```json
 {
   "enabled": true,
-  "provider": "Amazon Bedrock",
-  "model": "amazon.nova-lite-v1:0",
-  "region": "ap-south-1",
-  "credentials_available": true,
-  "guardrail_configured": false
+  "provider": "Groq",
+  "model": "openai/gpt-oss-120b",
+  "region": "Groq Cloud (global)",
+  "credentials_available": true
 }
 ```
 
@@ -562,11 +553,11 @@ Telemetry → Forecast → Risk Detection → PREDICTED event
 ```bash
 cd backend
 
-# Unit tests (no AWS credentials required)
-pytest tests/ --ignore=tests/copilot/test_bedrock_integration.py -v
+# Unit tests (no API key required)
+pytest tests/ --ignore=tests/copilot/test_groq_integration.py -v
 
-# Integration smoke tests (requires BEDROCK_ENABLED=true + AWS credentials)
-pytest tests/copilot/test_bedrock_integration.py -v -m integration
+# Integration smoke tests (requires GROQ_API_KEY)
+pytest tests/copilot/test_groq_integration.py -v -m integration
 
 # Frontend build check
 cd ../frontend && npm run build
@@ -584,17 +575,17 @@ cd ../frontend && npm run build
 | Reliability event schema | `test_reliability_event_schema.py` | 5 | ✅ pass (added Sprint 2) |
 | Solar model | `test_solar_model.py` | 6 | ✅ pass |
 | Copilot permissions | `copilot/test_permissions.py` | 22 | ✅ pass (added Sprint 4) |
-| Bedrock client (mocked) | `copilot/test_bedrock_client.py` | 22 | ✅ pass (added Sprint 4) |
+| Groq client (mocked) | `copilot/test_groq_client.py` | 45 | ✅ pass |
 | Agent loop (mocked) | `copilot/test_agent_loop.py` | 7 | ✅ pass (added Sprint 4) |
-| Bedrock integration | `copilot/test_bedrock_integration.py` | 5 | ⏸️ skip (no creds) |
-| **Total (unit)** | | **101** | **101/101** |
+| Groq integration | `copilot/test_groq_integration.py` | 5 | ⏸️ skip (no key) |
+| **Total (unit)** | | **115** | **115/115** |
 
 ### API smoke tests (separate script)
 
-`tests/copilot/test_bedrock_integration.py` — when run with real credentials:
-1. AWS credentials are available
-2. Bedrock client can be created
-3. Converse call succeeds and returns text
+`tests/copilot/test_groq_integration.py` — when run with a real `GROQ_API_KEY`:
+1. Groq API key is available
+2. Groq client can be created
+3. Chat completion call succeeds and returns text
 4. Tool-use round-trip works
 5. Full Copilot query pipeline returns a grounded answer
 
@@ -618,10 +609,10 @@ Production (ECS/Fargate, ap-south-1):
 
 The unified `app/` directory can be deployed as a single ECS task replacing all six containers when the team is ready — the business logic is identical, only the process boundary changes.
 
-To add the Bedrock Copilot to production:
-1. Attach `bedrock:InvokeModel` permission to the ECS task IAM role
-2. Set `BEDROCK_ENABLED=true` in the ECS task environment
-3. No other infrastructure changes required
+To add the Groq Copilot to production:
+1. Store the Groq API key as a secret (e.g. ECS task definition `secrets` entry or SSM parameter)
+2. Set `GROQ_ENABLED=true` and `GROQ_MODEL=openai/gpt-oss-120b` in the ECS task environment
+3. No IAM permission changes required (Groq is called over HTTPS with the API key)
 
 ---
 
@@ -641,7 +632,7 @@ To add the Bedrock Copilot to production:
 
 ### Resolved in this sprint
 
-- ~~Rule-based Copilot~~ → Real Amazon Bedrock Converse API with tool use
+- ~~Rule-based Copilot~~ → Real LLM Copilot with tool use (originally Bedrock, now Groq)
 - ~~All buttons were non-functional~~ → Every button has a handler and relevant action
 - ~~Delhi/generic building data~~ → Mumbai MSEDCL feeders throughout
 - ~~Hardcoded values in KPI cards~~ → Computed from live data (buildings.length, feederState, retrofits)

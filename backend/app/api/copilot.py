@@ -2,8 +2,8 @@
 
 Endpoints
 ─────────
-POST /api/v1/copilot/query    — submit a question to the Bedrock Copilot
-GET  /api/v1/copilot/status   — Bedrock availability and configuration
+POST /api/v1/copilot/query    — submit a question to the Groq Copilot
+GET  /api/v1/copilot/status   — Groq availability and configuration
 GET  /api/v1/copilot/ask      — legacy single-endpoint (kept for backward compat)
 
 Security invariants
@@ -11,7 +11,7 @@ Security invariants
 • The Copilot is READ-ONLY and SIMULATE-ONLY.
 • It cannot dispatch resources, approve decisions, or modify safety thresholds.
 • All tool calls are validated by the permission layer before execution.
-• Bedrock credentials are NEVER returned in any response.
+• Groq API keys are NEVER returned in any response.
 """
 from __future__ import annotations
 
@@ -38,12 +38,12 @@ router = APIRouter(tags=["copilot"])
 def copilot_query(request: CopilotQueryRequest) -> CopilotQueryResponse:
     """Submit a natural-language question to the GridFlex Reliability Copilot.
 
-    The Copilot uses Amazon Bedrock (Converse API) with tool-use to:
+    The Copilot uses the Groq Chat Completions API with tool-use to:
       1. Gather live grid data from GridFlex services (read-only)
       2. Reason over the data with the configured foundation model
       3. Return a grounded, data-backed natural-language answer
 
-    When Bedrock is unavailable (no credentials, BEDROCK_ENABLED=false),
+    When Groq is unavailable (no API key, GROQ_ENABLED=false),
     the endpoint returns a deterministic answer from live GridFlex data
     and clearly marks the response as a fallback.
 
@@ -65,27 +65,26 @@ def copilot_query(request: CopilotQueryRequest) -> CopilotQueryResponse:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GET /api/v1/copilot/status  — Bedrock availability probe
+# GET /api/v1/copilot/status  — Groq availability probe
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/copilot/status", response_model=CopilotStatusResponse)
 def copilot_status() -> CopilotStatusResponse:
-    """Return the Bedrock configuration and credential availability.
+    """Return the Groq configuration and API-key availability.
 
-    AWS secret keys are NEVER included in this response.
-    The 'credentials_available' field is determined by attempting to resolve
-    the boto3 credential chain — no actual Bedrock call is made.
+    API keys are NEVER included in this response.
+    The 'credentials_available' field reports whether GROQ_API_KEY is set —
+    no actual Groq call is made.
     """
-    from app.agents.gridflex_copilot.bedrock import credentials_available
-    creds_ok = credentials_available()
+    from app.agents.gridflex_copilot.llm import api_key_available
+    creds_ok = api_key_available()
 
     return CopilotStatusResponse(
-        enabled=config.bedrock_enabled,
-        provider="Amazon Bedrock",
-        model=config.bedrock_model_id,
-        region=config.aws_region or "ap-south-1",
+        enabled=config.groq_enabled and creds_ok,
+        provider="Groq",
+        model=config.groq_model,
+        region="Groq Cloud (global)",
         credentials_available=creds_ok,
-        guardrail_configured=config.bedrock_guardrail_configured,
     )
 
 
@@ -108,7 +107,7 @@ class _LegacyCopilotRequest(BaseModel):
 
 @router.post("/copilot/ask")
 def ask_copilot_legacy(request: _LegacyCopilotRequest) -> dict:
-    """Legacy endpoint — delegates to the new Bedrock-backed /query endpoint.
+    """Legacy endpoint — delegates to the new Groq-backed /query endpoint.
 
     The response shape is enriched vs. the original MVP to include model info.
     """

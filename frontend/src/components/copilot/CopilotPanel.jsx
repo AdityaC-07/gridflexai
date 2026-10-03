@@ -1,11 +1,11 @@
 /**
  * GridFlex Reliability Copilot Panel
  *
- * Renders the AI-powered Q&A interface powered by Amazon Bedrock.
+ * Renders the AI-powered Q&A interface powered by Groq.
  * Connects to POST /api/v1/copilot/query and GET /api/v1/copilot/status.
  *
  * UI clearly distinguishes:
- *   - AI response (from Bedrock)        → labelled "AI RESPONSE"
+ *   - AI response (from Groq)            → labelled "AI RESPONSE"
  *   - Deterministic fallback             → labelled "DETERMINISTIC DATA"
  *   - Simulation result                  → labelled "SIMULATION"
  *   - Live vs fallback mode
@@ -25,7 +25,7 @@ const PRESET_QUESTIONS = [
   { label: 'Are any critical loads exposed?' },
 ];
 
-async function queryBedrock(message, feederId, eventId) {
+async function queryCopilot(message, feederId, eventId) {
   const resp = await fetch(`${CONFIG.API_BASE_URL}/api/v1/copilot/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
   const textSec = isLight ? '#475569' : '#94A3B8';
   const textDim = '#64748B';
 
-  // Fetch Bedrock status on mount
+  // Fetch copilot status on mount
   useEffect(() => {
     fetchStatus().then(setStatus).catch(() => setStatus(null));
   }, []);
@@ -78,7 +78,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
     setResponse(null);
     setShowSources(false);
     try {
-      const result = await queryBedrock(q, feederId, eventId);
+      const result = await queryCopilot(q, feederId, eventId);
       setResponse({ question: q, ...result });
     } catch (err) {
       setError(err.message || 'Copilot request failed');
@@ -92,11 +92,11 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
   };
 
   // Indicator colours
-  const bedrockEnabled  = status?.enabled;
+  const copilotEnabled  = status?.enabled;
   const credentialsOk   = status?.credentials_available;
-  const isLive          = bedrockEnabled && credentialsOk;
+  const isLive          = copilotEnabled && credentialsOk;
   const modeColor       = isLive ? '#059669' : '#D97706';
-  const modeLabel       = isLive ? 'LIVE — Bedrock AI' : 'FALLBACK — Deterministic';
+  const modeLabel       = isLive ? 'LIVE — Groq AI' : 'FALLBACK — Deterministic';
 
   const responseMode    = response?.mode;
   const isAIResponse    = responseMode === 'live';
@@ -134,7 +134,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
                 GRIDFLEX RELIABILITY COPILOT
               </div>
               <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.62rem', color: textDim, letterSpacing: '0.06em' }}>
-                Powered by Amazon Bedrock
+                Powered by Groq
               </div>
             </div>
           </div>
@@ -174,7 +174,6 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
           }}>
             <span>MODEL: {status.model}</span>
             <span>REGION: {status.region}</span>
-            {status.guardrail_configured && <span>GUARDRAIL: ✓</span>}
           </div>
         )}
       </div>
@@ -212,7 +211,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
               </span>
             </div>
             <div style={{ fontFamily: 'DM Sans', fontSize: '0.82rem', color: textSec }}>
-              Querying GridFlex services via Amazon Bedrock Converse API…
+              Querying GridFlex services via the Groq OpenAI-compatible API…
             </div>
             {[
               'Reading feeder state from GridIntelligenceService',
@@ -242,7 +241,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
               {error}
             </div>
             <div style={{ fontFamily: 'DM Sans', fontSize: '0.75rem', color: textDim }}>
-              Bedrock is unavailable. All deterministic GridFlex services remain fully operational.
+              Groq is unavailable. All deterministic GridFlex services remain fully operational.
             </div>
           </div>
         )}
@@ -263,7 +262,7 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
             <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
               {isAIResponse ? (
                 <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.62rem', fontWeight: 700, padding: '3px 8px', borderRadius: '3px', backgroundColor: isLight ? 'rgba(212,132,26,0.1)' : 'rgba(212,132,26,0.15)', color: '#D4841A', border: '1px solid rgba(212,132,26,0.3)' }}>
-                  ✦ AI RESPONSE — Amazon Bedrock
+                  ✦ AI RESPONSE — Groq
                 </span>
               ) : (
                 <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.62rem', fontWeight: 700, padding: '3px 8px', borderRadius: '3px', backgroundColor: isLight ? '#F1F5F9' : '#1A1A1A', color: textDim, border: `1px solid ${borderM}` }}>

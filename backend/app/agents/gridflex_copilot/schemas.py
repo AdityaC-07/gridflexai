@@ -31,7 +31,7 @@ class CopilotQueryRequest(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 
 class ToolCallRecord(BaseModel):
-    """Record of a single tool invocation during the Converse loop."""
+    """Record of a single tool invocation during the tool-use loop."""
     tool_name: str
     tool_use_id: str
     input_args: dict[str, Any] = Field(default_factory=dict)
@@ -41,8 +41,8 @@ class ToolCallRecord(BaseModel):
 class CopilotQueryResponse(BaseModel):
     """Response body for POST /api/v1/copilot/query."""
     answer: str = Field(..., description="AI-generated natural-language answer.")
-    model: str = Field(..., description="Bedrock model ID used for inference.")
-    provider: str = Field(default="Amazon Bedrock")
+    model: str = Field(..., description="Groq model ID used for inference.")
+    provider: str = Field(default="Groq")
     tools_used: list[ToolCallRecord] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list,
                                description="GridFlex data sources consulted.")
@@ -57,9 +57,8 @@ class CopilotQueryResponse(BaseModel):
 class CopilotStatusResponse(BaseModel):
     """Response body for GET /api/v1/copilot/status."""
     enabled: bool
-    provider: str = "Amazon Bedrock"
+    provider: str = "Groq"
     model: str
-    region: str
+    region: str = "Groq Cloud (global)"
     credentials_available: bool
-    guardrail_configured: bool = False
-    # Intentionally no credentials/keys exposed
+    # Intentionally no API keys exposed

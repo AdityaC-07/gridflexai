@@ -1,7 +1,7 @@
 """Unit tests for the Copilot permission layer.
 
 These tests prove that the Copilot CANNOT call prohibited operations.
-All tests run without AWS credentials or Bedrock access.
+All tests run without a Groq API key or network access.
 """
 import pytest
 

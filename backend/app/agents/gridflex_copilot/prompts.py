@@ -1,6 +1,6 @@
-"""GridFlex Copilot — system prompt and Bedrock Converse tool specifications.
+"""GridFlex Copilot — system prompt and Groq tool specifications.
 
-The tool specs here are passed directly to Bedrock's Converse API as the
+The tool specs here are translated and passed to the Groq API as the
 ``tools`` parameter.  Each tool name must match exactly the names in
 permissions.py and tools.py.
 """
@@ -47,7 +47,7 @@ RESPONSE STYLE:
 - When citing data, mention the source tool used
 - If data is unavailable, say so clearly — never fabricate values
 - For scenario questions, clearly label results as SIMULATION (not live state)
-- If Bedrock is reasoning over simulation results, add "⚠️ SIMULATION — not live operational data"
+- If the model is reasoning over simulation results, add "⚠️ SIMULATION — not live operational data"
 
 DATA GROUNDING:
 Always call the appropriate GridFlex tools to get live data before answering.
@@ -56,7 +56,7 @@ Do not answer from memory or general knowledge when live data is available.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Converse Tool Specifications
-# These are passed to Bedrock as toolConfig.tools
+# These are passed to the LLM layer as toolConfig.tools
 # ─────────────────────────────────────────────────────────────────────────────
 
 TOOL_SPECS: list[dict[str, Any]] = [

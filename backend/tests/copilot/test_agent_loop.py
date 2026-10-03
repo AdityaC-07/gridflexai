@@ -1,7 +1,7 @@
-"""Unit tests for the Copilot agent loop — Bedrock fully mocked.
+"""Unit tests for the Copilot agent loop — Groq fully mocked.
 
 Tests the end-to-end loop: user message → toolUse → toolResult → end_turn.
-No AWS credentials or network required.
+No Groq API key or network required.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ def _fake_end_turn_response(text="The feeder is stable."):
         "stopReason": "end_turn",
         "output": {"message": {"role": "assistant", "content": [{"text": text}]}},
         "_latency_ms": 42.0,
-        "_model_id": "apac.amazon.nova-lite-v1:0",
+        "_model_id": "openai/gpt-oss-120b",
     }
 
 
@@ -31,7 +31,7 @@ def _fake_tool_use_response(tool_name="get_current_grid_state", tool_id="tu-001"
             }
         },
         "_latency_ms": 30.0,
-        "_model_id": "apac.amazon.nova-lite-v1:0",
+        "_model_id": "openai/gpt-oss-120b",
     }
 
 
@@ -49,24 +49,24 @@ def _fake_multi_tool_use_response(tools):
             }
         },
         "_latency_ms": 35.0,
-        "_model_id": "apac.amazon.nova-lite-v1:0",
+        "_model_id": "openai/gpt-oss-120b",
     }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Bedrock disabled → deterministic fallback
+# Groq disabled → deterministic fallback
 # ─────────────────────────────────────────────────────────────────────────────
 
-def test_bedrock_disabled_returns_fallback():
+def test_groq_disabled_returns_fallback():
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = False
+        mock_cfg.groq_enabled = False
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent._deterministic_fallback") as mock_fb:
             mock_fb.return_value = CopilotQueryResponse(
                 answer="Deterministic answer",
-                model="apac.amazon.nova-lite-v1:0",
+                model="openai/gpt-oss-120b",
                 data_timestamp="2026-01-01T00:00:00+00:00",
                 mode="fallback",
             )
@@ -78,17 +78,16 @@ def test_bedrock_disabled_returns_fallback():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Bedrock enabled, end_turn on first call
+# Groq enabled, end_turn on first call
 # ─────────────────────────────────────────────────────────────────────────────
 
-def test_bedrock_single_turn_end():
+def test_groq_single_turn_end():
     req = CopilotQueryRequest(message="What is the current grid risk?", feeder_id="F01")
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = True
+        mock_cfg.groq_enabled = True
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
-        mock_cfg.bedrock_guardrail_configured = False
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent.converse") as mock_conv:
             mock_conv.return_value = _fake_end_turn_response("Risk is LOW.")
@@ -97,15 +96,15 @@ def test_bedrock_single_turn_end():
 
     assert result.answer == "Risk is LOW."
     assert result.mode == "live"
-    assert result.model == "apac.amazon.nova-lite-v1:0"
+    assert result.model == "openai/gpt-oss-120b"
     assert result.tools_used == []
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Bedrock tool-use loop: toolUse → execute → end_turn
+# Groq tool-use loop: toolUse → execute → end_turn
 # ─────────────────────────────────────────────────────────────────────────────
 
-def test_bedrock_tool_use_then_end_turn():
+def test_groq_tool_use_then_end_turn():
     req = CopilotQueryRequest(message="Why is the grid stressed?", feeder_id="F01")
 
     tool_response = _fake_tool_use_response("get_current_grid_state", "tu-001", {"feeder_id": "F01"})
@@ -122,10 +121,9 @@ def test_bedrock_tool_use_then_end_turn():
     fake_tool_result = {"risk_level": "HIGH", "stress_index": 80, "net_gap_kw": 80}
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = True
+        mock_cfg.groq_enabled = True
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
-        mock_cfg.bedrock_guardrail_configured = False
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent.converse", side_effect=mock_converse):
             with patch("app.agents.gridflex_copilot.agent.execute_tool", return_value=fake_tool_result):
@@ -172,10 +170,9 @@ def test_multiple_tool_use_blocks_in_single_turn():
         return end_response
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = True
+        mock_cfg.groq_enabled = True
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
-        mock_cfg.bedrail_configured = False
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent.converse", side_effect=mock_converse):
             with patch("app.agents.gridflex_copilot.agent.execute_tool", return_value={"status": "ok"}):
@@ -224,10 +221,9 @@ def test_tool_execution_error_handled_as_tool_result():
         return end_response
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = True
+        mock_cfg.groq_enabled = True
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
-        mock_cfg.bedrail_configured = False
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent.converse", side_effect=mock_converse):
             with patch("app.agents.gridflex_copilot.agent.execute_tool", side_effect=ValueError("Data corrupt")):
@@ -263,9 +259,9 @@ def test_prohibited_tool_blocked_inside_loop():
     from app.agents.gridflex_copilot.permissions import CopilotPermissionError
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = True
+        mock_cfg.groq_enabled = True
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent.converse", side_effect=mock_converse):
             with patch("app.agents.gridflex_copilot.agent.check_tool_permitted",
@@ -279,20 +275,20 @@ def test_prohibited_tool_blocked_inside_loop():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Bedrock unavailable → deterministic fallback
+# Groq unavailable → deterministic fallback
 # ─────────────────────────────────────────────────────────────────────────────
 
-def test_bedrock_unavailable_returns_deterministic_fallback():
-    from app.agents.gridflex_copilot.bedrock import BedrockUnavailableError
+def test_groq_unavailable_returns_deterministic_fallback():
+    from app.agents.gridflex_copilot.llm import GroqUnavailableError
     req = CopilotQueryRequest(message="Grid status?", feeder_id="F01")
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = True
+        mock_cfg.groq_enabled = True
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
-        with patch("app.agents.gridflex_copilot.agent._run_bedrock_loop",
-                   side_effect=BedrockUnavailableError("No credentials")):
+        with patch("app.agents.gridflex_copilot.agent._run_llm_loop",
+                   side_effect=GroqUnavailableError("No credentials")):
             with patch("app.agents.gridflex_copilot.tools.get_current_grid_state",
                        return_value={"risk_level": "LOW", "stress_index": 12}):
                 with patch("app.agents.gridflex_copilot.tools.get_active_reliability_events",
@@ -302,7 +298,7 @@ def test_bedrock_unavailable_returns_deterministic_fallback():
                         result = run_copilot_query(req)
 
     assert result.mode == "fallback"
-    assert "unavailable" in result.answer.lower() or "Bedrock" in result.answer
+    assert "unavailable" in result.answer.lower() or "Groq" in result.answer
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -313,14 +309,14 @@ def test_response_schema_valid():
     req = CopilotQueryRequest(message="Test", feeder_id="F01")
 
     with patch("app.agents.gridflex_copilot.agent.config") as mock_cfg:
-        mock_cfg.bedrock_enabled = False
+        mock_cfg.groq_enabled = False
         mock_cfg.feeder_id = "F01"
-        mock_cfg.bedrock_model_id = "apac.amazon.nova-lite-v1:0"
+        mock_cfg.groq_model = "openai/gpt-oss-120b"
 
         with patch("app.agents.gridflex_copilot.agent._deterministic_fallback") as mock_fb:
             mock_fb.return_value = CopilotQueryResponse(
                 answer="Test answer",
-                model="apac.amazon.nova-lite-v1:0",
+                model="openai/gpt-oss-120b",
                 data_timestamp="2026-01-01T00:00:00+00:00",
                 mode="fallback",
             )

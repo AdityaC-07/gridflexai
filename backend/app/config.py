@@ -71,36 +71,35 @@ class AppConfig:
         default_factory=lambda: os.getenv("SNS_ENABLED", "false").lower() == "true"
     )
 
-    # ── Amazon Bedrock (Copilot AI layer) ─────────────────────────────────────
-    # BEDROCK_ENABLED=false  → Copilot returns deterministic fallback; no Bedrock call.
-    # BEDROCK_ENABLED=true   → Full Converse API agentic loop with real LLM inference.
+    # ── Groq (Copilot AI layer) ──────────────────────────────────────────────
+    # GROQ_ENABLED=false  → Copilot returns deterministic fallback; no Groq call.
+    # GROQ_ENABLED=true   → Full agentic tool-use loop with real LLM inference.
+    #                        Also requires GROQ_API_KEY (https://console.groq.com).
     #
-    # Default model: amazon.nova-lite-v1:0
-    #   • Supports tool use via Converse API
-    #   • Available in ap-south-1
-    #   • Lowest latency / cost for interactive Q&A
-    #   • Change to anthropic.claude-3-haiku-20240307-v1:0 or
-    #     us.amazon.nova-pro-v1:0 (cross-region) for higher capability
-    bedrock_enabled: bool = field(
-        default_factory=lambda: os.getenv("BEDROCK_ENABLED", "false").lower() == "true"
+    # Default model: openai/gpt-oss-120b
+    #   • Groq production/featured model, OpenAI-compatible Chat Completions API
+    #   • Supports local tool use (function calling) + JSON mode
+    #   • ~500 tokens/sec, 131k context window — best fit for the multi-tool
+    #     GridFlex Copilot loop
+    #   • Note: llama-3.3-70b-versatile was decommissioned by Groq on 2026-08-16
+    #   • Alternatives: qwen/qwen3.8-27b (parallel tool use),
+    #     openai/gpt-oss-20b (cheaper/faster, lower capability)
+    groq_api_key: str = field(
+        default_factory=lambda: os.getenv("GROQ_API_KEY", "")
     )
-    bedrock_model_id: str = field(
-        default_factory=lambda: os.getenv(
-            "BEDROCK_MODEL_ID", "apac.amazon.nova-lite-v1:0"
-        )
+    groq_enabled: bool = field(
+        default_factory=lambda: os.getenv("GROQ_ENABLED", "true").lower() == "true"
     )
-    bedrock_max_tokens: int = field(
-        default_factory=lambda: _int("BEDROCK_MAX_TOKENS", 1000)
+    groq_model: str = field(
+        default_factory=lambda: os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     )
-    bedrock_temperature: float = field(
-        default_factory=lambda: _float("BEDROCK_TEMPERATURE", 0.2)
+    groq_max_tokens: int = field(
+        default_factory=lambda: _int("GROQ_MAX_TOKENS", 1024)
     )
-    # Optional guardrail integration
-    bedrock_guardrail_id: str = field(
-        default_factory=lambda: os.getenv("BEDROCK_GUARDRAIL_ID", "")
-    )
-    bedrock_guardrail_version: str = field(
-        default_factory=lambda: os.getenv("BEDROCK_GUARDRAIL_VERSION", "")
+    groq_temperature: float = field(
+        # Groq recommends 0.5-0.7 for reasoning models (gpt-oss) to avoid
+        # repetitive/incoherent outputs; 0.5 keeps answers grounded.
+        default_factory=lambda: _float("GROQ_TEMPERATURE", 0.5)
     )
 
     @property
@@ -110,10 +109,6 @@ class AppConfig:
     @property
     def is_aws(self) -> bool:
         return self.app_mode == "aws"
-
-    @property
-    def bedrock_guardrail_configured(self) -> bool:
-        return bool(self.bedrock_guardrail_id and self.bedrock_guardrail_version)
 
 
 # Singleton used throughout the unified app

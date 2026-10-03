@@ -598,7 +598,7 @@ def execute_tool(tool_name: str, tool_input: dict[str, Any]) -> Any:
 
     Args:
         tool_name:  Name matching the Converse toolSpec.
-        tool_input: Input dict from the Bedrock toolUse block.
+        tool_input: Input dict from the model's toolUse block.
 
     Returns:
         Tool result (dict or str).

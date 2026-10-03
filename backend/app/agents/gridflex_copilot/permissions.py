@@ -117,7 +117,7 @@ def check_tool_permitted(tool_name: str) -> None:
     This is called BEFORE every tool execution in the Converse loop.
 
     Args:
-        tool_name: The tool name requested by Bedrock.
+        tool_name: The tool name requested by the model (Groq).
 
     Raises:
         CopilotPermissionError: If tool_name is not in _PERMITTED_TOOLS.

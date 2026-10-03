@@ -1,4 +1,4 @@
-"""GridFlex Reliability Copilot — Amazon Bedrock agentic layer.
+"""GridFlex Reliability Copilot — Groq agentic layer.
 
 Architecture
 ────────────
@@ -8,7 +8,7 @@ POST /api/v1/copilot/query          (api/copilot.py)
     ↓
 run_copilot_query()                 (agent.py)
     ↓
-Amazon Bedrock Converse API         (bedrock.py)
+Groq Chat Completions API           (llm.py)
     ↓  toolUse
 Permission check                    (permissions.py)
     ↓  ALLOWED
@@ -21,7 +21,7 @@ GridFlex tool execution             (tools.py)
         app.services.reliability
         app.services.flexibility
     ↓  toolResult
-Amazon Bedrock Converse API         (bedrock.py)
+Groq Chat Completions API           (llm.py)
     ↓  end_turn
 Natural-language answer
     ↓

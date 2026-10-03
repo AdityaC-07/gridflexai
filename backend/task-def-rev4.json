@@ -22,7 +22,7 @@
           "value": "aws"
         },
         {
-          "name": "BEDROCK_ENABLED",
+          "name": "GROQ_ENABLED",
           "value": "true"
         },
         {
@@ -34,8 +34,8 @@
           "value": "gridflex"
         },
         {
-          "name": "BEDROCK_MODEL_ID",
-          "value": "apac.amazon.nova-lite-v1:0"
+          "name": "GROQ_MODEL",
+          "value": "openai/gpt-oss-120b"
         },
         {
           "name": "FEEDER_ID",

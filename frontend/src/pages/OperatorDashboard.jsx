@@ -142,7 +142,7 @@ export function OperatorDashboard() {
         </div>
       )}
 
-      {/* GridFlex Reliability Copilot — Amazon Bedrock AI layer */}
+      {/* GridFlex Reliability Copilot — Groq AI layer */}
       <div style={{ marginBottom: '24px' }}>
         <CopilotPanel feederId="F01" />
       </div>

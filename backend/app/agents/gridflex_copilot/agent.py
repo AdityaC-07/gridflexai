@@ -1,4 +1,4 @@
-"""GridFlex Copilot agent — Amazon Bedrock Converse agentic loop.
+"""GridFlex Copilot agent — Groq Chat Completions agentic loop.
 
 Architecture
 ────────────
@@ -8,13 +8,13 @@ FastAPI router (api/copilot.py)
     ↓
 run_copilot_query()     ← this file
     ↓
-Bedrock Converse API (bedrock.py)
+Groq Chat Completions API (llm.py)
     ↓  toolUse
 Permission check (permissions.py)
     ↓  if GRANTED
 Tool execution (tools.py)
     ↓  toolResult
-Bedrock Converse API (bedrock.py)  [continues conversation]
+Groq Chat Completions API (llm.py)  [continues conversation]
     ↓  end_turn
 Final answer text
     ↓
@@ -25,7 +25,7 @@ Safety guarantees
 • Permission layer denies any tool not in the explicit allowlist BEFORE execution.
 • No tool writes to any store (all tools are read-only or simulate-only).
 • The loop terminates after MAX_TOOL_ROUNDS to prevent infinite loops.
-• If Bedrock is unavailable, we return a deterministic fallback answer
+• If Groq is unavailable, we return a deterministic fallback answer
   (the original rule-based engine) — we NEVER fabricate an AI answer.
 """
 from __future__ import annotations
@@ -35,9 +35,9 @@ import time
 from datetime import datetime, timezone
 
 from app.config import config
-from app.agents.gridflex_copilot.bedrock import (
-    BedrockUnavailableError,
-    BedrockModelError,
+from app.agents.gridflex_copilot.llm import (
+    GroqUnavailableError,
+    GroqModelError,
     converse,
     extract_text,
     extract_tool_uses,
@@ -60,7 +60,7 @@ from app.agents.gridflex_copilot.schemas import (
 
 logger = logging.getLogger("app.agents.copilot.agent")
 
-# Safety: maximum Converse turns (user→model→tool→model…) before forcing end
+# Safety: maximum tool-use rounds (user→model→tool→model…) before forcing end
 MAX_TOOL_ROUNDS = 6
 
 
@@ -71,36 +71,36 @@ MAX_TOOL_ROUNDS = 6
 def run_copilot_query(request: CopilotQueryRequest) -> CopilotQueryResponse:
     """Entry point for the Copilot API.
 
-    If BEDROCK_ENABLED=false or Bedrock is unreachable, falls back to the
+    If GROQ_ENABLED=false or Groq is unreachable, falls back to the
     deterministic rule-based engine — never fabricates an LLM response.
     """
     now = datetime.now(timezone.utc).isoformat()
 
-    if not config.bedrock_enabled:
-        logger.info("Bedrock disabled — using deterministic fallback.")
-        return _deterministic_fallback(request, now, reason="BEDROCK_ENABLED=false")
+    if not config.groq_enabled:
+        logger.info("Groq disabled — using deterministic fallback.")
+        return _deterministic_fallback(request, now, reason="GROQ_ENABLED=false")
 
-    # ── Real Bedrock path ──────────────────────────────────────────────────
+    # ── Real Groq path ──────────────────────────────────────────────────
     t0 = time.monotonic()
     try:
-        result = _run_bedrock_loop(request)
+        result = _run_llm_loop(request)
         result.data_timestamp = now
         result.latency_ms = round((time.monotonic() - t0) * 1000, 1)
         return result
 
-    except BedrockUnavailableError as exc:
-        logger.warning("Bedrock unavailable — deterministic fallback: %s", exc)
+    except GroqUnavailableError as exc:
+        logger.warning("Groq unavailable — deterministic fallback: %s", exc)
         return _deterministic_fallback(
             request, now,
-            reason=f"Bedrock unavailable: {exc}",
+            reason=f"Groq unavailable: {exc}",
             mode="fallback",
         )
 
-    except BedrockModelError as exc:
-        logger.error("Bedrock model error — deterministic fallback: %s", exc)
+    except GroqModelError as exc:
+        logger.error("Groq model error — deterministic fallback: %s", exc)
         return _deterministic_fallback(
             request, now,
-            reason=f"Bedrock model error: {exc}",
+            reason=f"Groq model error: {exc}",
             mode="fallback",
         )
 
@@ -114,14 +114,14 @@ def run_copilot_query(request: CopilotQueryRequest) -> CopilotQueryResponse:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Bedrock Converse agentic loop
+# Groq agentic tool-use loop
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
-    """Execute the full Converse tool-use loop.
+def _run_llm_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
+    """Execute the full Groq tool-use loop.
 
     Loop:
-      1. Send user message to Bedrock.
+      1. Send user message to Groq.
       2. If stopReason == 'tool_use': execute each tool, append results, repeat.
       3. If stopReason == 'end_turn': extract final text, return.
       4. After MAX_TOOL_ROUNDS, force end regardless.
@@ -141,7 +141,7 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
     total_latency = 0.0
 
     for round_num in range(MAX_TOOL_ROUNDS + 1):
-        logger.info("Converse round %d (model=%s)", round_num + 1, config.bedrock_model_id)
+        logger.info("Chat round %d (model=%s)", round_num + 1, config.groq_model)
 
         response = converse(
             messages=messages,
@@ -163,8 +163,8 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
                 )
             return CopilotQueryResponse(
                 answer=answer,
-                model=response.get("_model_id", config.bedrock_model_id),
-                provider="Amazon Bedrock",
+                model=response.get("_model_id", config.groq_model),
+                provider="Groq",
                 tools_used=tools_used,
                 sources=sorted(set(sources)),
                 data_timestamp=datetime.now(timezone.utc).isoformat(),
@@ -268,8 +268,8 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
             answer = extract_text(response) or "Unexpected response from model."
             return CopilotQueryResponse(
                 answer=answer,
-                model=response.get("_model_id", config.bedrock_model_id),
-                provider="Amazon Bedrock",
+                model=response.get("_model_id", config.groq_model),
+                provider="Groq",
                 tools_used=tools_used,
                 sources=sorted(set(sources)),
                 data_timestamp=datetime.now(timezone.utc).isoformat(),
@@ -280,7 +280,7 @@ def _run_bedrock_loop(request: CopilotQueryRequest) -> CopilotQueryResponse:
             )
 
     # Should not reach here
-    raise RuntimeError("Converse loop exceeded MAX_TOOL_ROUNDS without returning.")
+    raise RuntimeError("LLM loop exceeded MAX_TOOL_ROUNDS without returning.")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -344,7 +344,7 @@ def _summarise_result(tool_name: str, result: dict) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Deterministic fallback — used when Bedrock is unavailable
+# Deterministic fallback — used when Groq is unavailable
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _deterministic_fallback(
@@ -356,7 +356,7 @@ def _deterministic_fallback(
     """Produce a deterministic answer using existing rule-based logic.
 
     This is NEVER presented as an AI answer — the response clearly marks
-    it as a deterministic fallback with the reason Bedrock is unavailable.
+    it as a deterministic fallback with the reason Groq is unavailable.
     """
     # Call the tools directly (no LLM)
     from app.agents.gridflex_copilot.tools import (
@@ -380,20 +380,20 @@ def _deterministic_fallback(
     pool_kw   = pool.get("total_available_kw", 0)
 
     answer = (
-        f"⚠️ Amazon Bedrock is unavailable ({reason}). "
+        f"⚠️ Groq is unavailable ({reason}). "
         f"Showing deterministic GridFlex data:\n\n"
         f"Feeder {feeder_id} — Risk: {risk} (stress {stress}/100)\n"
         f"Demand: {demand} kW | Solar: {solar} kW | Gap: {gap} kW\n"
         f"Battery SoC: {soc}% | Flexibility pool: {pool_kw} kW\n"
         f"Active reliability events: {n_events}\n\n"
         f"All deterministic GridFlex services remain fully operational. "
-        f"Configure AWS credentials and set BEDROCK_ENABLED=true to enable AI explanations."
+        f"Set GROQ_API_KEY and GROQ_ENABLED=true to enable AI explanations."
     )
 
     return CopilotQueryResponse(
         answer=answer,
-        model=config.bedrock_model_id,
-        provider="Amazon Bedrock (unavailable — deterministic fallback)",
+        model=config.groq_model,
+        provider="Groq (unavailable — deterministic fallback)",
         tools_used=[],
         sources=["grid_state", "reliability_events", "flexibility_pool"],
         data_timestamp=timestamp,

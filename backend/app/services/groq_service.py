@@ -18,7 +18,7 @@ class GroqService:
 
     def __init__(self) -> None:
         self.api_key = os.getenv("GROQ_API_KEY")
-        self.model = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+        self.model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
         self.temperature = float(os.getenv("GROQ_TEMPERATURE", "0.2"))
         self.max_tokens = int(os.getenv("GROQ_MAX_TOKENS", "1000"))
         self.client = None

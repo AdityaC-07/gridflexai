@@ -97,7 +97,7 @@ def generate_explanation(question: str, context: dict) -> str:
     """Generate explanation for the user's question based on context.
 
     This is a simplified rule-based explanation system. In production,
-    this would use an LLM (e.g., Claude via Bedrock) with proper grounding.
+    this would use an LLM (e.g., the Groq Copilot layer) with proper grounding.
     """
     question_lower = question.lower()
     feeder_state = context.get("feeder_state", {})
