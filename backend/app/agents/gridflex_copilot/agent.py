@@ -380,14 +380,14 @@ def _deterministic_fallback(
     pool_kw   = pool.get("total_available_kw", 0)
 
     answer = (
-        f"⚠️ Groq is unavailable ({reason}). "
-        f"Showing deterministic GridFlex data:\n\n"
-        f"Feeder {feeder_id} — Risk: {risk} (stress {stress}/100)\n"
-        f"Demand: {demand} kW | Solar: {solar} kW | Gap: {gap} kW\n"
-        f"Battery SoC: {soc}% | Flexibility pool: {pool_kw} kW\n"
-        f"Active reliability events: {n_events}\n\n"
+        f"## ⚠️ Groq is unavailable\n\n"
+        f"**Reason:** {reason} — showing deterministic GridFlex data:\n\n"
+        f"- **Feeder:** {feeder_id} — Risk: **{risk}** (stress {stress}/100)\n"
+        f"- **Demand:** {demand} kW | **Solar:** {solar} kW | **Gap:** {gap} kW\n"
+        f"- **Battery SoC:** {soc}% | **Flexibility pool:** {pool_kw} kW\n"
+        f"- **Active reliability events:** {n_events}\n\n"
         f"All deterministic GridFlex services remain fully operational. "
-        f"Set GROQ_API_KEY and GROQ_ENABLED=true to enable AI explanations."
+        f"Set `GROQ_API_KEY` and `GROQ_ENABLED=true` to enable AI explanations."
     )
 
     return CopilotQueryResponse(

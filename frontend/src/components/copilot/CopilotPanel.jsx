@@ -11,6 +11,8 @@
  *   - Live vs fallback mode
  */
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Send, Cpu, AlertTriangle, Clock, Database, Zap, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { CONFIG } from '../../config';
 import { useBuildingContext } from '../../context/BuildingContext';
@@ -101,6 +103,72 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
   const responseMode    = response?.mode;
   const isAIResponse    = responseMode === 'live';
   const isSimulation    = response?.answer?.includes('SIMULATION') || response?.answer?.includes('⚠️');
+
+  // Markdown renderers for the AI answer (GFM tables, headings, lists)
+  const mdComponents = {
+    h1: ({ children }) => (
+      <div style={{ fontFamily: 'Space Grotesk', fontSize: '1rem', fontWeight: 700, color: textPri, margin: '12px 0 6px' }}>{children}</div>
+    ),
+    h2: ({ children }) => (
+      <div style={{ fontFamily: 'Space Grotesk', fontSize: '0.95rem', fontWeight: 700, color: textPri, margin: '12px 0 6px' }}>{children}</div>
+    ),
+    h3: ({ children }) => (
+      <div style={{ fontFamily: 'Space Grotesk', fontSize: '0.85rem', fontWeight: 700, color: textSec, margin: '10px 0 4px' }}>{children}</div>
+    ),
+    p: ({ children }) => (
+      <p style={{ margin: '8px 0', lineHeight: 1.65 }}>{children}</p>
+    ),
+    strong: ({ children }) => (
+      <strong style={{ fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8' }}>{children}</strong>
+    ),
+    em: ({ children }) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+    ul: ({ children }) => (
+      <ul style={{ margin: '6px 0', paddingLeft: '18px' }}>{children}</ul>
+    ),
+    ol: ({ children }) => (
+      <ol style={{ margin: '6px 0', paddingLeft: '18px' }}>{children}</ol>
+    ),
+    li: ({ children }) => (
+      <li style={{ margin: '2px 0', lineHeight: 1.55 }}>{children}</li>
+    ),
+    table: ({ children }) => (
+      <div style={{ overflowX: 'auto', margin: '10px 0' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>{children}</table>
+      </div>
+    ),
+    th: ({ children }) => (
+      <th style={{
+        border: `1px solid ${borderM}`, padding: '6px 8px', textAlign: 'left',
+        backgroundColor: isLight ? '#F1F5F9' : '#1A1A1A',
+        fontFamily: 'JetBrains Mono', fontSize: '0.68rem', fontWeight: 700,
+        color: isLight ? '#475569' : '#94A3B8', whiteSpace: 'nowrap',
+      }}>{children}</th>
+    ),
+    td: ({ children }) => (
+      <td style={{
+        border: `1px solid ${borderM}`, padding: '6px 8px',
+        fontFamily: 'DM Sans', fontSize: '0.78rem', color: textPri,
+        verticalAlign: 'top',
+      }}>{children}</td>
+    ),
+    hr: () => <hr style={{ border: 'none', borderTop: `1px solid ${borderM}`, margin: '10px 0' }} />,
+    code: ({ children }) => (
+      <code style={{
+        fontFamily: 'JetBrains Mono', fontSize: '0.78em',
+        backgroundColor: isLight ? '#F1F5F9' : '#1A1A1A',
+        padding: '1px 4px', borderRadius: '3px',
+      }}>{children}</code>
+    ),
+    a: ({ children, href }) => (
+      <a href={href} target="_blank" rel="noreferrer" style={{ color: '#D4841A' }}>{children}</a>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote style={{
+        margin: '8px 0', paddingLeft: '10px',
+        borderLeft: `3px solid #D4841A`, color: textSec,
+      }}>{children}</blockquote>
+    ),
+  };
 
   return (
     <div style={{
@@ -276,14 +344,16 @@ export function CopilotPanel({ feederId = 'F01', eventId = null }) {
               )}
             </div>
 
-            {/* Answer text */}
+            {/* Answer text (markdown) */}
             <div style={{
               fontFamily: 'DM Sans', fontSize: '0.875rem', color: textPri, lineHeight: 1.65,
               padding: '14px 16px', backgroundColor: isLight ? '#F8FAFC' : '#161616',
               borderRadius: '6px', border: `1px solid ${borderM}`,
-              marginBottom: '12px', whiteSpace: 'pre-wrap',
+              marginBottom: '12px',
             }}>
-              {response.answer}
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                {response.answer}
+              </ReactMarkdown>
             </div>
 
             {/* Tools used */}
