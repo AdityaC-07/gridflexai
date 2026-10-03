@@ -157,6 +157,7 @@ export function SimulationPage() {
               </p>
             </div>
             <button
+              id="trigger-cloud-event-button"
               onClick={() => triggerCloudEvent(79)}
               disabled={isLoading || isCloudEvent}
               style={{

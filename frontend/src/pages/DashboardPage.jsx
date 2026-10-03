@@ -1,38 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuildingContext } from '../context/BuildingContext';
 import { useGridState } from '../context/GridStateContext';
 import {
   Search,
-  Plus,
   MapPin,
   Zap,
   AlertTriangle,
   Repeat,
-  Shield,
-  SlidersHorizontal,
-  BarChart2,
   ArrowDownRight,
   ArrowUpRight,
   ArrowRight,
   Leaf,
-  Sparkles,
-  X,
 } from 'lucide-react';
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const {
-    theme,
-    buildings,
-    activeCityFilter,
-    setActiveCityFilter,
-    searchQuery,
-    setSearchQuery,
-    triggerAIAnalysis,
-  } = useBuildingContext();
+  const { theme, buildings, searchQuery, setSearchQuery, triggerAIAnalysis } = useBuildingContext();
   const { feederState, isCloudEvent } = useGridState();
-  const [filterOpen, setFilterOpen] = useState(false);
 
   const isLight = theme === 'light';
 
@@ -48,46 +33,9 @@ export function DashboardPage() {
     b.statusType === 'caution' || b.statusType === 'alert'
   ).length;
 
-  // Battery SOC from live feeder state
-  const batterySoc = feederState?.battery_soc_pct ?? null;
-
-  // City tab counts computed from actual buildings
-  const cityTabs = [
-    { label: 'All', count: buildings.length },
-    { label: 'Central Mumbai', count: buildings.filter(b => b.location.match(/Dharavi|Sion/i)).length },
-    { label: 'Eastern Suburbs', count: buildings.filter(b => b.location.match(/Kurla|MIDC|Andheri/i)).length },
-    { label: 'Western Suburbs', count: buildings.filter(b => b.location.match(/Andheri East/i)).length },
-    { label: 'South Mumbai', count: buildings.filter(b => b.location.match(/Worli|BKC/i)).length },
-  ];
-
-  // Map location substrings to filter tab labels
-  const locationToFilter = {
-    'Central Mumbai': ['Dharavi', 'Sion'],
-    'Eastern Suburbs': ['Kurla', 'MIDC', 'Andheri'],
-    'Western Suburbs': ['Andheri East'],
-    'South Mumbai': ['Worli', 'BKC'],
-  };
-
-  const filteredBuildings = buildings.filter((b) => {
-    if (activeCityFilter === 'All') return true;
-    const keywords = locationToFilter[activeCityFilter] || [];
-    const matchesCity = keywords.some((k) =>
-      b.location.toLowerCase().includes(k.toLowerCase()) ||
-      b.city.toLowerCase().includes(k.toLowerCase())
-    );
-    const matchesQuery =
-      !searchQuery ||
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCity && matchesQuery;
-  }).filter((b) => {
-    if (activeCityFilter !== 'All') return true;
-    return (
-      !searchQuery ||
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.location.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  const filteredBuildings = buildings.filter((b) =>
+    !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div>
@@ -210,13 +158,14 @@ export function DashboardPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '16px',
           marginBottom: '32px',
         }}
       >
         {/* Card 1 */}
         <div
+          id="kpi-fleet-demand"
           style={{
             backgroundColor: isLight ? '#FFFFFF' : '#161616',
             border: isLight ? '1px solid #E2E8DC' : '1px solid #242424',
@@ -330,44 +279,6 @@ export function DashboardPage() {
             {isCloudEvent ? 'Cloud Event Active' : 'GridFlex AI Sync 100%'}
           </div>
         </div>
-
-        {/* Card 4 */}
-        <div
-          style={{
-            backgroundColor: isLight ? '#FFFFFF' : '#161616',
-            border: isLight ? '1px solid #E2E8DC' : '1px solid #242424',
-            borderRadius: '6px',
-            padding: '18px 20px',
-            position: 'relative',
-            boxShadow: isLight ? '0 2px 10px rgba(0,0,0,0.03)' : 'none',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-            <span style={{ fontFamily: 'Cinzel', fontSize: '0.68rem', fontWeight: 700, color: isLight ? '#5C6B61' : '#64748B', letterSpacing: '0.08em' }}>
-              FLEET ESG SCORE
-            </span>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '6px',
-                backgroundColor: isLight ? '#E6F5F0' : 'rgba(107, 165, 135, 0.15)',
-                color: '#10B981',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Shield size={17} />
-            </div>
-          </div>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '2.2rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8', lineHeight: 1 }}>
-            {feederState?.forecast_confidence ? Math.round(feederState.forecast_confidence * 100) : '—'} <span style={{ fontSize: '1rem', color: isLight ? '#5C6B61' : '#64748B' }}>%</span>
-          </div>
-          <div style={{ fontFamily: 'Outfit', fontSize: '0.8rem', color: isLight ? '#0D472B' : '#7CB899', marginTop: '6px', fontWeight: 600 }}>
-            {feederState ? 'Forecast Confidence' : 'No live data yet'}
-          </div>
-        </div>
       </div>
 
       {/* Control Toolbar: Search, Filters, Create Button */}
@@ -409,48 +320,6 @@ export function DashboardPage() {
         {/* Toolbar buttons — all functional */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
 
-          {/* Filter by city — toggles the city tab UI below */}
-          <button
-            onClick={() => setFilterOpen(v => !v)}
-            title="Filter feeders by zone"
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 14px',
-              backgroundColor: filterOpen ? (isLight ? '#0D472B' : '#D4841A') : (isLight ? '#FFFFFF' : '#161616'),
-              border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A',
-              borderRadius: '4px',
-              color: filterOpen ? '#FFFFFF' : (isLight ? '#2D3E33' : '#D1CCC3'),
-              fontFamily: 'Outfit', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
-            }}
-          >
-            <SlidersHorizontal size={14} />
-            <span>{activeCityFilter === 'All' ? 'Filter Zone' : activeCityFilter}</span>
-            {activeCityFilter !== 'All' && (
-              <span onClick={(e) => { e.stopPropagation(); setActiveCityFilter('All'); }}
-                style={{ marginLeft: '4px', opacity: 0.7 }}>
-                <X size={12} />
-              </span>
-            )}
-          </button>
-
-          {/* Analytics — navigates to analytics tab */}
-          <button
-            onClick={() => navigate('/analytics')}
-            title="Open Grid Operations & Analytics"
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 14px',
-              backgroundColor: isLight ? '#FFFFFF' : '#161616',
-              border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A',
-              borderRadius: '4px',
-              color: isLight ? '#2D3E33' : '#D1CCC3',
-              fontFamily: 'Outfit', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
-            }}
-          >
-            <BarChart2 size={14} />
-            <span>Analytics ({buildings.length})</span>
-          </button>
-
           {/* Add Feeder — navigates to operator console */}
           <button
             onClick={() => navigate('/operator')}
@@ -467,33 +336,6 @@ export function DashboardPage() {
             <span>Grid Operator</span>
           </button>
         </div>
-      </div>
-
-      {/* City Filter Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
-        {cityTabs.map((tab) => {
-          const isActive = activeCityFilter === tab.label;
-          return (
-            <button
-              key={tab.label}
-              onClick={() => setActiveCityFilter(tab.label)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '4px',
-                fontFamily: 'Outfit',
-                fontSize: '0.85rem',
-                fontWeight: isActive ? 600 : 400,
-                color: isActive ? '#FFFFFF' : isLight ? '#3A4A3E' : '#94A3B8',
-                backgroundColor: isActive ? (isLight ? '#0D472B' : '#D4841A') : isLight ? '#EAEFE3' : '#161616',
-                border: isActive ? (isLight ? '1px solid #0D472B' : '1px solid #D4841A') : isLight ? '1px solid #DAE2D2' : '1px solid #242424',
-                cursor: 'pointer',
-                transition: 'all 150ms ease',
-              }}
-            >
-              {tab.label} ({tab.count})
-            </button>
-          );
-        })}
       </div>
 
       {/* Building Cards Grid (2x3) */}

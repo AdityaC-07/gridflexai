@@ -18,7 +18,6 @@ export function RetrofitsPage() {
   const navigate = useNavigate();
   const { retrofits, toggleRetrofitSelection, theme } = useBuildingContext();
   const isLight = theme === 'light';
-  const [activeCategory, setActiveCategory] = useState('ALL');
 
   const selectedCount  = retrofits.filter((r) => r.selected).length;
   const totalCapex     = retrofits.filter((r) => r.selected).reduce((acc, r) => acc + r.capex, 0);
@@ -45,13 +44,7 @@ export function RetrofitsPage() {
     a.click();
   };
 
-  const filteredRetrofits = retrofits.filter((r) => {
-    if (activeCategory === 'ALL') return true;
-    if (activeCategory === 'SMART CONTROLS') return r.category === 'SMART CONTROLS';
-    if (activeCategory === 'HVAC EQUIPMENT') return r.category === 'HVAC EQUIPMENT';
-    if (activeCategory === 'LIGHTING') return r.category === 'LIGHTING';
-    return true;
-  });
+  const filteredRetrofits = retrofits;
 
   return (
     <div style={{ position: 'relative', paddingBottom: '100px' }}>
@@ -223,68 +216,13 @@ export function RetrofitsPage() {
         </div>
       </div>
 
-      {/* Filter controls & Category Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Filter Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: isLight ? '#FFFFFF' : '#161616', padding: '6px 12px', border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A', borderRadius: '4px', fontSize: '0.82rem' }}>
-            <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Filter by Budget:</span>
-            <span style={{ color: isLight ? '#0F172A' : '#F5F1E8' }}>All Bands</span>
-            <ChevronDown size={14} color={isLight ? '#5C6B61' : '#64748B'} />
-          </div>
-
-          {/* Sort Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: isLight ? '#FFFFFF' : '#161616', padding: '6px 12px', border: isLight ? '1px solid #DAE2D2' : '1px solid #2A2A2A', borderRadius: '4px', fontSize: '0.82rem' }}>
-            <span style={{ color: isLight ? '#5C6B61' : '#64748B' }}>Sort by:</span>
-            <span style={{ color: isLight ? '#0F172A' : '#F5F1E8' }}>Highest 10Y ROI</span>
-            <ChevronDown size={14} color={isLight ? '#5C6B61' : '#64748B'} />
-          </div>
-
-          {/* Category Tabs */}
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {[
-              { label: 'ALL', count: 8 },
-              { label: 'SMART CONTROLS', count: 3 },
-              { label: 'HVAC EQUIPMENT', count: 3 },
-              { label: 'LIGHTING', count: 2 },
-            ].map((cat) => (
-              <button
-                key={cat.label}
-                onClick={() => setActiveCategory(cat.label)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '4px',
-                  fontFamily: 'Space Grotesk',
-                  fontSize: '0.8rem',
-                  fontWeight: activeCategory === cat.label ? 600 : 400,
-                  color: activeCategory === cat.label ? '#FFFFFF' : isLight ? '#3A4A3E' : '#94A3B8',
-                  backgroundColor: activeCategory === cat.label ? (isLight ? '#0D472B' : '#D4841A') : isLight ? '#FFFFFF' : '#161616',
-                  border: activeCategory === cat.label ? (isLight ? '1px solid #0D472B' : '1px solid #D4841A') : isLight ? '1px solid #DAE2D2' : '1px solid #242424',
-                  cursor: 'pointer',
-                }}
-              >
-                {cat.label} ({cat.count})
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.72rem', color: isLight ? '#5C6B61' : '#64748B' }}>
-          • Showing 8 retrofits modeled by Groq Neural Engine
-        </span>
-      </div>
+      <div style={{ marginBottom: 24, color: isLight ? "#5C6B61" : "#64748B", fontSize: "0.82rem" }}>Recommendations are shown by default ROI.</div>
 
       {/* Retrofits List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: 'calc(100% - 320px)' }}>
         {filteredRetrofits.map((r) => (
           <div
+            id={r === filteredRetrofits[0] ? 'retrofit-card-1' : undefined}
             key={r.id}
             style={{
               backgroundColor: isLight ? '#FFFFFF' : '#161616',

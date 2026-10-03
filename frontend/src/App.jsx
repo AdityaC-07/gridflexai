@@ -1,7 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { BuildingProvider } from './context/BuildingContext';
 import { GridStateProvider } from './context/GridStateContext';
+import { TourProvider } from './contexts/TourContext';
+import { TourOverlay } from './components/tour/TourOverlay';
 import { AppLayout } from './components/layout/AppLayout';
 
 // Pages
@@ -20,131 +22,110 @@ import { ResidentView } from './pages/ResidentView';
 export function App() {
   return (
     <BuildingProvider>
-      {/* GridStateProvider wraps the whole app so any page can access live grid state */}
       <GridStateProvider>
         <Router>
-          <Routes>
-            {/* ── Landing (no sidebar/topbar) ──────────────────────────── */}
-            <Route
-              path="/"
-              element={
-                <AppLayout showHeader={false}>
-                  <LandingPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Building Portfolio Dashboard ─────────────────────────── */}
-            <Route
-              path="/dashboard"
-              element={
-                <AppLayout>
-                  <DashboardPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Building Detail ──────────────────────────────────────── */}
-            <Route
-              path="/buildings/:id"
-              element={
-                <AppLayout>
-                  <BuildingDetailsPage />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/buildings"
-              element={
-                <AppLayout>
-                  <BuildingDetailsPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Grid Operations & Demand Response Analytics ──────────── */}
-            <Route
-              path="/analytics"
-              element={
-                <AppLayout>
-                  <GridOpsPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Retrofit Roadmap ─────────────────────────────────────── */}
-            <Route
-              path="/retrofits"
-              element={
-                <AppLayout>
-                  <RetrofitsPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Equipment Diagnostics ────────────────────────────────── */}
-            <Route
-              path="/equipment"
-              element={
-                <AppLayout>
-                  <EquipmentPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Grid / Reliability Operator Console ─────────────────── */}
-            <Route
-              path="/operator"
-              element={
-                <AppLayout>
-                  <OperatorDashboard />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Cloud Event Simulation ───────────────────────────────── */}
-            <Route
-              path="/simulation"
-              element={
-                <AppLayout>
-                  <SimulationPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Reliability Deep-Dive ────────────────────────────────── */}
-            <Route
-              path="/reliability"
-              element={
-                <AppLayout>
-                  <ReliabilityPage />
-                </AppLayout>
-              }
-            />
-
-            {/* ── DISCOM Executive Dashboard ───────────────────────────── */}
-            <Route
-              path="/discom"
-              element={
-                <AppLayout>
-                  <DiscomDashboard />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Resident / Consumer View ─────────────────────────────── */}
-            <Route
-              path="/resident"
-              element={
-                <AppLayout showHeader={false}>
-                  <ResidentView />
-                </AppLayout>
-              }
-            />
-
-            {/* ── Fallback ─────────────────────────────────────────────── */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+          <TourProvider>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <AppLayout showHeader={false}>
+                    <LandingPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <AppLayout>
+                    <DashboardPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/buildings/:id"
+                element={
+                  <AppLayout>
+                    <BuildingDetailsPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/buildings"
+                element={
+                  <AppLayout>
+                    <BuildingDetailsPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <AppLayout>
+                    <GridOpsPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/retrofits"
+                element={
+                  <AppLayout>
+                    <RetrofitsPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/equipment"
+                element={
+                  <AppLayout>
+                    <EquipmentPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/operator"
+                element={
+                  <AppLayout>
+                    <OperatorDashboard />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/simulation"
+                element={
+                  <AppLayout>
+                    <SimulationPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/reliability"
+                element={
+                  <AppLayout>
+                    <ReliabilityPage />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/discom"
+                element={
+                  <AppLayout>
+                    <DiscomDashboard />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/resident"
+                element={
+                  <AppLayout showHeader={false}>
+                    <ResidentView />
+                  </AppLayout>
+                }
+              />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+            <TourOverlay />
+          </TourProvider>
         </Router>
       </GridStateProvider>
     </BuildingProvider>

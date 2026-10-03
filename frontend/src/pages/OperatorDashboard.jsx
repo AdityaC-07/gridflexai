@@ -3,12 +3,10 @@ import { KeyMetricsStrip } from '../components/cards/KeyMetricsStrip';
 import { ForecastChart } from '../components/charts/ForecastChart';
 import { GridIntelligencePanel } from '../components/cards/GridIntelligencePanel';
 import { OptimizationActionPanel } from '../components/optimization/OptimizationActionPanel';
-import { BatteryGauge } from '../components/cards/BatteryGauge';
 import { EnergyFlowDiagram } from '../components/cards/EnergyFlowDiagram';
 import { AlertBanner } from '../components/alerts/AlertBanner';
 import { ReliabilityEventCard } from '../components/cards/ReliabilityEventCard';
 import { FlexibilityPoolPanel } from '../components/cards/FlexibilityPoolPanel';
-import { FeederDigitalTwin } from '../components/cards/FeederDigitalTwin';
 import { CopilotPanel } from '../components/copilot/CopilotPanel';
 import { useGridState } from '../context/GridStateContext';
 import { useBuildingContext } from '../context/BuildingContext';
@@ -75,20 +73,14 @@ export function OperatorDashboard() {
             </div>
           </div>
 
-          {/* Row 2: Grid Intelligence + Battery Asset + Feeder Digital Twin */}
+          {/* Row 2: Grid status */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateColumns: '1fr',
             gap: '20px'
           }}>
             <div style={{ height: '360px' }}>
               <GridIntelligencePanel />
-            </div>
-            <div style={{ height: '360px' }}>
-              <BatteryGauge />
-            </div>
-            <div style={{ height: '360px' }}>
-              <FeederDigitalTwin />
             </div>
           </div>
 
@@ -123,20 +115,14 @@ export function OperatorDashboard() {
             </div>
           </div>
 
-          {/* Row 2: Optimization Panel + Battery Gauge + Feeder Digital Twin */}
+          {/* Row 2: Optimization status */}
           <div ref={optRef} style={{
             display: 'grid',
-            gridTemplateColumns: '1.2fr 1fr 1fr',
+            gridTemplateColumns: '1fr',
             gap: '20px'
           }}>
             <div style={{ height: '420px' }}>
               <OptimizationActionPanel />
-            </div>
-            <div style={{ height: '420px' }}>
-              <BatteryGauge />
-            </div>
-            <div style={{ height: '420px' }}>
-              <FeederDigitalTwin />
             </div>
           </div>
 

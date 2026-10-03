@@ -146,21 +146,21 @@ export function EquipmentPage() {
         </div>
       </div>
 
-      {/* Section 2: Severity Hierarchy Matrix */}
+      {/* Active anomaly list, ordered from highest to lowest severity */}
       <div style={{ marginBottom: '36px' }}>
         <div style={{ marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#059669' }} />
             <h3 style={{ fontFamily: 'Space Grotesk', fontSize: '1.2rem', fontWeight: 700, color: isLight ? '#0F172A' : '#F5F1E8' }}>
-              Severity Hierarchy Matrix
+              Active Anomalies
             </h3>
           </div>
-          <p style={{ fontFamily: 'DM Sans', fontSize: '0.82rem', color: isLight ? '#5C6B61' : '#64748B', marginTop: '2px' }}>
-            Color-coded triage indicators for dynamic alert classification in grid telemetry feeds.
+            <p style={{ fontFamily: 'DM Sans', fontSize: '0.82rem', color: isLight ? '#5C6B61' : '#64748B', marginTop: '2px' }}>
+            Equipment issues ordered by severity, with diagnosis and recommended actions.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
           {/* HIGH alert */}
           <div style={{ backgroundColor: isLight ? '#FFFFFF' : '#1A1A1A', borderLeft: '4px solid #FF6B5B', borderTop: isLight ? '1px solid #E2E8DC' : '1px solid #282828', borderRight: isLight ? '1px solid #E2E8DC' : '1px solid #282828', borderBottom: isLight ? '1px solid #E2E8DC' : '1px solid #282828', borderRadius: '6px', padding: '16px', boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.03)' : 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>

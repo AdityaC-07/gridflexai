@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building2, LineChart, Wrench, Cpu, LogOut, Zap, ShieldCheck, Activity, Users } from 'lucide-react';
+import { LayoutDashboard, Building2, Wrench, Cpu, LogOut, Zap, ShieldCheck, Activity, Users } from 'lucide-react';
 import { useBuildingContext } from '../../context/BuildingContext';
 import { useGridState } from '../../context/GridStateContext';
 
@@ -29,11 +29,6 @@ export function Sidebar() {
       label: 'Buildings',
       icon: Building2,
       badge: String(buildings.length),  // live count, not hardcoded
-    },
-    {
-      path: '/analytics',
-      label: 'Analytics',
-      icon: LineChart,
     },
     {
       path: '/retrofits',

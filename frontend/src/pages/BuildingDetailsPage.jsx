@@ -420,7 +420,7 @@ export function BuildingDetailsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
           {/* Energy Consumption Chart */}
-          <div style={{ backgroundColor: bg, border: `1px solid ${border}`, borderRadius: '8px', padding: '24px', boxShadow: isLight ? '0 2px 10px rgba(0,0,0,0.03)' : 'none' }}>
+          <div id="energy-consumption-chart" style={{ backgroundColor: bg, border: `1px solid ${border}`, borderRadius: '8px', padding: '24px', boxShadow: isLight ? '0 2px 10px rgba(0,0,0,0.03)' : 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#E89B3C' }} />

@@ -14,7 +14,7 @@ export function AlertBanner({ onReviewClick }) {
 
   if (!isCloudEvent && actionable.length === 0) {
     return (
-      <div style={{
+      <div id="peak-demand-alert" style={{
         backgroundColor: isLight ? '#ECFDF5' : 'rgba(5,150,105,0.08)',
         border: isLight ? '1px solid #A7F3D0' : '1px solid rgba(5,150,105,0.25)',
         borderRadius: '6px',
@@ -43,7 +43,7 @@ export function AlertBanner({ onReviewClick }) {
   };
 
   return (
-    <div style={{
+    <div id="peak-demand-alert" style={{
       backgroundColor: isLight ? '#FFFBEB' : 'rgba(217,119,6,0.1)',
       border: isLight ? '1px solid #FDE68A' : '1px solid rgba(217,119,6,0.3)',
       borderLeft: '4px solid #D97706',

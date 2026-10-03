@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { ChevronDown, Bell, Sliders, Building, Sun, Moon, X, RefreshCw, Settings } from 'lucide-react';
+﻿import React, { useState } from 'react';
+import { ChevronDown, Bell, Sliders, Building, Sun, Moon, X, RefreshCw, Settings, HelpCircle } from 'lucide-react';
 import { useBuildingContext } from '../../context/BuildingContext';
 import { useGridState } from '../../context/GridStateContext';
 import { useNavigate } from 'react-router-dom';
+import { useTourStore } from '../../store/tourStore';
 
 export function Topbar() {
   const { theme, toggleTheme } = useBuildingContext();
   const { feederState, isCloudEvent, lastUpdated, refreshAll } = useGridState();
   const navigate = useNavigate();
+  const { resetTour } = useTourStore();
   const isLight = theme === 'light';
-
   const [notifOpen, setNotifOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -49,7 +50,7 @@ export function Topbar() {
 
       {/* Left: Portfolio + Status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        {/* Portfolio selector — navigates to dashboard */}
+        {/* Portfolio selector â€” navigates to dashboard */}
         <button
           onClick={() => navigate('/dashboard')}
           title="Go to District Portfolio Dashboard"
@@ -105,7 +106,7 @@ export function Topbar() {
           <span>{isLight ? 'Light' : 'Dark'}</span>
         </button>
 
-        {/* Refresh button — triggers live data refresh */}
+        {/* Refresh button */}
         <button
           onClick={() => refreshAll()}
           title={`Refresh all data (last: ${lastTime} IST)`}
@@ -119,7 +120,16 @@ export function Topbar() {
           <RefreshCw size={15} />
         </button>
 
-        {/* Notification Bell — opens notification panel */}
+        <button
+          onClick={resetTour}
+          title="Replay onboarding tour"
+          aria-label="Replay onboarding tour"
+          style={{ width: '34px', height: '34px', borderRadius: '4px', backgroundColor: bg, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4841A', cursor: 'pointer' }}
+        >
+          <HelpCircle size={17} />
+        </button>
+
+        {/* Notification Bell â€” opens notification panel */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => { setNotifOpen(v => !v); setSettingsOpen(false); }}
@@ -158,17 +168,17 @@ export function Topbar() {
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#DC2626', flexShrink: 0, marginTop: '4px' }} />
                     <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#DC2626' }}>Cloud Event Active — Feeder F01</div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#DC2626' }}>Cloud Event Active â€” Feeder F01</div>
                       <div style={{ fontSize: '0.75rem', color: textDim, marginTop: '2px' }}>Solar generation dropped. Energy gap detected. Review optimization panel.</div>
                       <button onClick={() => { navigate('/operator'); setNotifOpen(false); }} style={{ marginTop: '8px', fontSize: '0.72rem', color: '#0284C7', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        → Open Grid Operator
+                        â†’ Open Grid Operator
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div style={{ padding: '24px 16px', textAlign: 'center', color: textDim, fontSize: '0.82rem' }}>
-                  <div style={{ marginBottom: '4px' }}>✓ No active alerts</div>
+                  <div style={{ marginBottom: '4px' }}>âœ“ No active alerts</div>
                   <div style={{ fontSize: '0.72rem' }}>Last updated: {lastTime} IST</div>
                 </div>
               )}
@@ -177,7 +187,7 @@ export function Topbar() {
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#D97706', flexShrink: 0, marginTop: '4px' }} />
                     <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#D97706' }}>Feeder F01 — {feederState.risk_level} Risk</div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#D97706' }}>Feeder F01 â€” {feederState.risk_level} Risk</div>
                       <div style={{ fontSize: '0.75rem', color: textDim, marginTop: '2px' }}>Stress index: {feederState.stress_index}/100</div>
                     </div>
                   </div>
@@ -187,7 +197,7 @@ export function Topbar() {
           )}
         </div>
 
-        {/* Settings — opens settings panel */}
+        {/* Settings â€” opens settings panel */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => { setSettingsOpen(v => !v); setNotifOpen(false); }}
@@ -216,7 +226,7 @@ export function Topbar() {
               </div>
               {[
                 { label: 'Theme', value: isLight ? 'Light Mode' : 'Dark Mode', action: toggleTheme },
-                { label: 'Feeder', value: 'F01 — Dharavi North', action: () => { navigate('/dashboard'); setSettingsOpen(false); } },
+                { label: 'Feeder', value: 'F01 â€” Dharavi North', action: () => { navigate('/dashboard'); setSettingsOpen(false); } },
                 { label: 'Polling', value: '30s refresh interval', action: null },
                 { label: 'DISCOM', value: 'MSEDCL Mumbai', action: null },
               ].map(({ label, value, action }) => (
@@ -245,7 +255,7 @@ export function Topbar() {
           OPS LEAD <span style={{ color: textDim }}>HQ_TERMINAL</span>
         </div>
 
-        {/* Avatar — opens operator profile page */}
+        {/* Avatar â€” opens operator profile page */}
         <button
           onClick={() => navigate('/operator')}
           title="Go to Operator Console"
