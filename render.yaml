@@ -1,0 +1,46 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Render Blueprint — GridFlex AI backend
+#
+# Deploy:  Render Dashboard → New → Blueprint → connect this GitHub repo
+#          (render.yaml at the repo root is picked up automatically)
+#
+# After the first deploy you get a URL like:
+#   https://gridflex-backend-xxxx.onrender.com
+#
+# Then connect the Vercel frontend:
+#   1. Render Dashboard → gridflex-backend → Env → set CORS_ORIGINS to
+#        https://your-app.vercel.app
+#   2. Vercel Dashboard → Project → Settings → Environment Variables →
+#        set VITE_API_URL=https://gridflex-backend-xxxx.onrender.com
+#      (must be set at BUILD time — redeploy the frontend after changing it)
+#   3. Copilot live mode: set GROQ_API_KEY (https://console.groq.com/keys)
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: gridflex-backend
+    runtime: python
+    plan: free                 # free = spins down after idle (cold start ~30s);
+                               # use starter/standard for always-on
+    region: singapore          # closest Render region to Mumbai
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # local = in-memory store, no AWS credentials needed (state resets on
+      # restart). Switch to "aws" only if you also add AWS_REGION + credentials.
+      - name: APP_MODE
+        value: local
+      # Extra CORS origins (comma-separated) — your Vercel frontend URL.
+      # Set this in the Render dashboard after the first deploy.
+      - name: CORS_ORIGINS
+        sync: false
+      # GridFlex Reliability Copilot (Groq)
+      - name: GROQ_ENABLED
+        value: "true"
+      - name: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      # Create a key at https://console.groq.com/keys, then set it in the
+      # Render dashboard. Without it the Copilot runs deterministic fallback.
+      - name: GROQ_API_KEY
+        sync: false

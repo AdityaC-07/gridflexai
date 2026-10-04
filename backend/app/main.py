@@ -139,6 +139,15 @@ _ALLOWED_ORIGINS = [
     "https://d3pi56i3w5vugt.cloudfront.net",
 ]
 
+# Extra origins from CORS_ORIGINS env var (comma-separated) — e.g. the Vercel
+# deployment of the frontend:  CORS_ORIGINS=https://your-app.vercel.app
+_ALLOWED_ORIGINS = list(
+    dict.fromkeys(  # dedupe, preserve order
+        _ALLOWED_ORIGINS
+        + [o.strip() for o in config.cors_origins.split(",") if o.strip()]
+    )
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,

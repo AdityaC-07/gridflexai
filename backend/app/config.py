@@ -102,6 +102,12 @@ class AppConfig:
         default_factory=lambda: _float("GROQ_TEMPERATURE", 0.5)
     )
 
+    # ── CORS ──────────────────────────────────────────────────────────────────
+    # Comma-separated EXTRA origins allowed beyond the built-in list
+    # (localhost dev + CloudFront). Set to your Vercel frontend URL in prod:
+    #   CORS_ORIGINS=https://your-app.vercel.app
+    cors_origins: str = field(default_factory=lambda: os.getenv("CORS_ORIGINS", ""))
+
     @property
     def is_local(self) -> bool:
         return self.app_mode == "local"
