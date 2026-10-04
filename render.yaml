@@ -29,18 +29,18 @@ services:
     envVars:
       # local = in-memory store, no AWS credentials needed (state resets on
       # restart). Switch to "aws" only if you also add AWS_REGION + credentials.
-      - name: APP_MODE
+      - key: APP_MODE
         value: local
       # Extra CORS origins (comma-separated) — your Vercel frontend URL.
       # Set this in the Render dashboard after the first deploy.
-      - name: CORS_ORIGINS
+      - key: CORS_ORIGINS
         sync: false
       # GridFlex Reliability Copilot (Groq)
-      - name: GROQ_ENABLED
+      - key: GROQ_ENABLED
         value: "true"
-      - name: GROQ_MODEL
+      - key: GROQ_MODEL
         value: openai/gpt-oss-120b
       # Create a key at https://console.groq.com/keys, then set it in the
       # Render dashboard. Without it the Copilot runs deterministic fallback.
-      - name: GROQ_API_KEY
+      - key: GROQ_API_KEY
         sync: false
